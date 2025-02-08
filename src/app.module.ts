@@ -5,6 +5,7 @@ import { ViolationModule } from './modules/violation/violation.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { typeOrmAsyncConfig } from './commons/configs/database.config';
 import { ConfigModule } from '@nestjs/config';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { ConfigModule } from '@nestjs/config';
     }),
     TypeOrmModule.forRootAsync(typeOrmAsyncConfig),
     ViolationModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

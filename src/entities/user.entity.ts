@@ -17,6 +17,9 @@ export class UserEntity extends CommonBaseEntity {
   @Column({ nullable: false })
   public password?: string;
 
+  @Column({ nullable: false, unique: true })
+  public email?: string;
+
   @Column({ type: 'enum', enum: RoleEnum })
   public role?: RoleEnum;
 

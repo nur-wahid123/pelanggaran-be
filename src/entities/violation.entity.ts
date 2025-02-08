@@ -26,12 +26,11 @@ export class ViolationEntity extends CommonBaseEntity {
   @ManyToOne(() => UserEntity, (user) => user.violations)
   public creator?: UserEntity;
 
-  @ManyToMany(() => StudentEntity, (s) => s.violations)
-  @JoinTable()
-  public students?: StudentEntity[];
+  @ManyToOne(() => StudentEntity, (s) => s.violations)
+  public student?: StudentEntity;
 
   @ManyToMany(() => ViolationTypeEntity, (vt) => vt.violations)
   @JoinTable()
   @Expose({ name: 'violation_types' })
-  public violationTypes?: ViolationTypeEntity;
+  public violationTypes?: ViolationTypeEntity[];
 }

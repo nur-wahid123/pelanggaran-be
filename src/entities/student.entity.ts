@@ -1,8 +1,8 @@
 import {
   Column,
   Entity,
-  ManyToMany,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { CommonBaseEntity } from './common-base.entity';
@@ -16,7 +16,7 @@ export class StudentEntity extends CommonBaseEntity {
   public id?: number;
 
   @Column()
-  public name?: number;
+  public name?: string;
 
   @Column()
   @Expose({ name: 'school_student_id' })
@@ -26,7 +26,7 @@ export class StudentEntity extends CommonBaseEntity {
   @Expose({ name: 'national_student_id' })
   public nationalStudentId?: string;
 
-  @ManyToMany(() => ViolationEntity, (v) => v.students)
+  @OneToMany(() => ViolationEntity, (v) => v.student)
   public violations?: ViolationEntity[];
 
   @ManyToOne(() => ClassEntity, (c) => c.students)
