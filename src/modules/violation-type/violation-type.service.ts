@@ -3,6 +3,10 @@ import { CreateViolationTypeDto } from './dto/create-violation-type.dto';
 import { UpdateViolationTypeDto } from './dto/update-violation-type.dto';
 import { ViolationTypeEntity } from 'src/entities/violation-type.entity';
 import { ViolationTypeRepository } from 'src/repositories/violation-type.repository';
+import { FilterDto } from 'src/commons/dto/filter.dto';
+import { PageOptionsDto } from 'src/commons/dto/page-option.dto';
+import { PageMetaDto } from 'src/commons/dto/page-meta.dto';
+import { PageDto } from 'src/commons/dto/page.dto';
 
 @Injectable()
 export class ViolationTypeService {
@@ -20,19 +24,41 @@ export class ViolationTypeService {
     private readonly violationTypeRepository: ViolationTypeRepository,
   ) {}
 
-  findAll() {
-    return `This action returns all violationType`;
+  async findAll(filter: FilterDto, pageOptionsDto: PageOptionsDto) {
+    const [data, itemCount] = await this.violationTypeRepository.findAll(
+      filter,
+      pageOptionsDto,
+    );
+
+    const meta = new PageMetaDto({ pageOptionsDto, itemCount });
+
+    return new PageDto(data, meta);
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} violationType`;
+    return this.violationTypeRepository.findOne({ where: { id } });
   }
 
-  update(id: number, updateViolationTypeDto: UpdateViolationTypeDto) {
-    return `This action updates a #${updateViolationTypeDto} violationType`;
+  async update(
+    id: number,
+    updateViolationTypeDto: UpdateViolationTypeDto,
+    userId: number,
+  ) {
+    const violationType = new ViolationTypeEntity();
+    violationType.id = id;
+    violationType.updatedBy = userId;
+    violationType.name = updateViolationTypeDto.name;
+    violationType.point = updateViolationTypeDto.point;
+    await this.violationTypeRepository.saveViolationType(violationType);
+    return violationType;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} violationType`;
+  async remove(id: number, userId: number) {
+    const violationType = new ViolationTypeEntity();
+    violationType.id = id;
+    violationType.deletedBy = userId;
+    violationType.deletedAt = new Date();
+    await this.violationTypeRepository.saveViolationType(violationType);
+    return violationType;
   }
 }

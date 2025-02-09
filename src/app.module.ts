@@ -6,6 +6,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { typeOrmAsyncConfig } from './commons/configs/database.config';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './modules/auth/auth.module';
+import { ViolationTypeModule } from './modules/violation-type/violation-type.module';
+import { StudentModule } from './modules/student/student.module';
+import { ClassesModule } from './modules/classes/classes.module';
+import { UserModule } from './modules/user/user.module';
 
 @Module({
   imports: [
@@ -15,6 +19,11 @@ import { AuthModule } from './modules/auth/auth.module';
     TypeOrmModule.forRootAsync(typeOrmAsyncConfig),
     ViolationModule,
     AuthModule,
+    ViolationModule,
+    ViolationTypeModule,
+    StudentModule,
+    ClassesModule,
+    UserModule,
   ],
   controllers: [AppController],
   providers: [AppService],
