@@ -24,5 +24,5 @@ export class UserEntity extends CommonBaseEntity {
   public role?: RoleEnum;
 
   @OneToMany(() => ViolationEntity, (violation) => violation.creator)
-  public violations?: ViolationEntity;
+  public violations?: ViolationEntity[];
 }
