@@ -40,6 +40,7 @@ export class ViolationService {
         violation.note = note;
       }
       violation.violationTypes = violationTypes;
+      violation.date = new Date();
       violation.createdBy = user.id;
       violations.push(violation);
     }

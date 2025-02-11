@@ -36,6 +36,7 @@ export class ViolationTypeRepository extends Repository<ViolationTypeEntity> {
     } catch (error) {
       await queryRunner.rollbackTransaction();
       console.log(error);
+      throw error;
     } finally {
       await queryRunner.release();
     }

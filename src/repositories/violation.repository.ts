@@ -15,6 +15,7 @@ export class ViolationRepository extends Repository<ViolationEntity> {
     } catch (error) {
       await queryRunner.rollbackTransaction();
       console.log(error);
+      throw error;
     } finally {
       await queryRunner.release();
     }

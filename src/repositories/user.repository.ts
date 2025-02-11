@@ -21,6 +21,7 @@ export class UserRepository extends Repository<UserEntity> {
     } catch (error) {
       await queryRunner.rollbackTransaction();
       console.log(error);
+      throw error;
     } finally {
       await queryRunner.release();
     }

@@ -1,11 +1,5 @@
 import { Expose, Type } from 'class-transformer';
-import {
-  IsArray,
-  IsNotEmpty,
-  IsNumber,
-  IsString,
-  ValidateNested,
-} from 'class-validator';
+import { IsArray, IsNotEmpty, IsString, ValidateNested } from 'class-validator';
 
 export class CreateStudentDto {
   @IsNotEmpty()
@@ -21,9 +15,9 @@ export class CreateStudentDto {
   public nis?: string;
 
   @IsNotEmpty()
-  @IsNumber()
-  @Expose({ name: 'class_id' })
-  public classId?: number;
+  @IsString()
+  @Expose({ name: 'class_name' })
+  public className?: string;
 }
 
 export class CreateStudentBatchDto {

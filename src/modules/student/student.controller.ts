@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { StudentService } from './student.service';
 import {
@@ -17,6 +18,8 @@ import { UpdateStudentDto } from './dto/update-student.dto';
 import { JwtAuthGuard } from 'src/commons/guards/jwt-auth.guard';
 import { Payload } from 'src/commons/decorators/payload.decorator';
 import { JwtPayload } from '../auth/jwt-payload.interface';
+import { FilterDto } from 'src/commons/dto/filter.dto';
+import { PageOptionsDto } from 'src/commons/dto/page-option.dto';
 
 @Controller('student')
 @UseGuards(JwtAuthGuard)
@@ -40,8 +43,8 @@ export class StudentController {
   }
 
   @Get('list')
-  findAll() {
-    return this.studentService.findAll();
+  findAll(@Query() query: FilterDto, @Query() pageOptionsDto: PageOptionsDto) {
+    return this.studentService.findAll(query, pageOptionsDto);
   }
 
   @Get('detail/:id')

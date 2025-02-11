@@ -7,58 +7,32 @@ import { UpdateStudentDto } from './dto/update-student.dto';
 import { StudentEntity } from 'src/entities/student.entity';
 import { StudentRepository } from 'src/repositories/student.repository';
 import { ClassEntity } from 'src/entities/class.entity';
-import { In } from 'typeorm';
+import { FilterDto } from 'src/commons/dto/filter.dto';
+import { PageOptionsDto } from 'src/commons/dto/page-option.dto';
+import { PageMetaDto } from 'src/commons/dto/page-meta.dto';
+import { PageDto } from 'src/commons/dto/page.dto';
 
 @Injectable()
 export class StudentService {
-  async createBatch(userId: number, createStudentDto: CreateStudentBatchDto) {
-    const existsStudents = await this.extractNisn(createStudentDto);
-    const { items } = createStudentDto;
-    const students: StudentEntity[] = [];
-    for (let index = 0; index < items.length; index++) {
-      const element = items[index];
-      const { classId, name, nis, nisn } = element;
-      let student: StudentEntity = existsStudents.find((e) => {
-        return e.nationalStudentId === nisn;
-      });
-      if (!student) {
-        student = new StudentEntity();
-      }
-      const classEntity = await this.studentRepository.manager.findOne(
-        ClassEntity,
-        { where: { id: classId } },
-      );
-      if (!classEntity) {
-        throw new NotFoundException('class not found');
-      }
-      student.studentClass = classEntity;
-      student.createdBy = userId;
-      student.name = name;
-      student.nationalStudentId = nisn;
-      student.schoolStudentId = nis;
-      students.push(student);
-    }
-    await this.studentRepository.saveStudents(students);
-    return 'Success';
+  async findAll(query: FilterDto, pageOptionsDto: PageOptionsDto) {
+    const [data, itemCount] = await this.studentRepository.findAllStudent(
+      query,
+      pageOptionsDto,
+    );
+
+    const meta = new PageMetaDto({ pageOptionsDto, itemCount });
+
+    return new PageDto(data, meta);
   }
-  async extractNisn(createStudentDto: CreateStudentBatchDto) {
-    const { items } = createStudentDto;
-    const nisns: string[] = [];
-    for (let index = 0; index < items.length; index++) {
-      const element = items[index];
-      nisns.push(element.nisn);
-    }
-    const students = await this.studentRepository.find({
-      where: { nationalStudentId: In(nisns) },
-      select: { id: true, nationalStudentId: true },
-    });
-    return students;
+
+  async createBatch(userId: number, createStudentDto: CreateStudentBatchDto) {
+    return this.studentRepository.saveStudents(userId, createStudentDto);
   }
 
   constructor(private readonly studentRepository: StudentRepository) {}
 
   async create(userId: number, createStudentDto: CreateStudentDto) {
-    const { classId, name, nis, nisn } = createStudentDto;
+    const { className, name, nis, nisn } = createStudentDto;
     let student: StudentEntity = await this.studentRepository.findOne({
       where: { nationalStudentId: nisn },
     });
@@ -67,7 +41,7 @@ export class StudentService {
     }
     const classEntity = await this.studentRepository.manager.findOne(
       ClassEntity,
-      { where: { id: classId } },
+      { where: { name: className } },
     );
     if (!classEntity) {
       throw new NotFoundException('class not found');
@@ -79,10 +53,6 @@ export class StudentService {
     student.schoolStudentId = nis;
     await this.studentRepository.saveStudent(student);
     return student;
-  }
-
-  findAll() {
-    return `This action returns all student`;
   }
 
   findOne(id: number) {
