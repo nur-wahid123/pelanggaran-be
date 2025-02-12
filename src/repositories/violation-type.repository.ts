@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { FilterDto } from 'src/commons/dto/filter.dto';
 import { PageOptionsDto } from 'src/commons/dto/page-option.dto';
 import { ViolationTypeEntity } from 'src/entities/violation-type.entity';
@@ -14,7 +14,7 @@ export class ViolationTypeRepository extends Repository<ViolationTypeEntity> {
       .where((qb) => {
         const { search } = filter;
         if (search) {
-          qb.andWhere('violationType.name LIKE :search', {
+          qb.andWhere('lower(violationType.name) LIKE lower(:search)', {
             search: `%${search}%`,
           });
         }
@@ -36,7 +36,7 @@ export class ViolationTypeRepository extends Repository<ViolationTypeEntity> {
     } catch (error) {
       await queryRunner.rollbackTransaction();
       console.log(error);
-      throw error;
+      throw new InternalServerErrorException('internal server error');
     } finally {
       await queryRunner.release();
     }

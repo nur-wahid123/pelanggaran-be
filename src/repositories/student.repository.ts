@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { FilterDto } from 'src/commons/dto/filter.dto';
 import { PageOptionsDto } from 'src/commons/dto/page-option.dto';
 import { ClassEntity } from 'src/entities/class.entity';
@@ -95,7 +95,7 @@ export class StudentRepository extends Repository<StudentEntity> {
     } catch (error) {
       await queryRunner.rollbackTransaction();
       console.log(error);
-      throw error;
+      throw new InternalServerErrorException('internal server error');
     } finally {
       await queryRunner.release();
     }
@@ -110,7 +110,7 @@ export class StudentRepository extends Repository<StudentEntity> {
     } catch (error) {
       await queryRunner.rollbackTransaction();
       console.log(error);
-      throw error;
+      throw new InternalServerErrorException('internal server error');
     } finally {
       await queryRunner.release();
     }

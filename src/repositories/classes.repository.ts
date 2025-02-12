@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ClassEntity } from 'src/entities/class.entity';
 import { DataSource, Repository } from 'typeorm';
 
@@ -14,7 +14,7 @@ export class ClassRepository extends Repository<ClassEntity> {
     } catch (error) {
       await queryRunner.rollbackTransaction();
       console.log(error);
-      throw error;
+      throw new InternalServerErrorException('internal server error');
     } finally {
       await queryRunner.release();
     }

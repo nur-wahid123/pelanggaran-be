@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { UserLoginDto } from './dto/login-user.dto';
 import { UserEntity } from 'src/entities/user.entity';
 import { Token } from 'src/commons/types/token.type';
@@ -42,7 +46,7 @@ export class AuthService {
       return token;
     } catch (error) {
       console.log(error);
-      throw error;
+      throw new InternalServerErrorException('internal server error');
     }
   }
 

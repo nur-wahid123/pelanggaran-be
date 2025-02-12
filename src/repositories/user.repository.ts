@@ -1,6 +1,7 @@
 import {
   ForbiddenException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import HashPassword from 'src/commons/utils/hash-password.util';
@@ -21,7 +22,7 @@ export class UserRepository extends Repository<UserEntity> {
     } catch (error) {
       await queryRunner.rollbackTransaction();
       console.log(error);
-      throw error;
+      throw new InternalServerErrorException('internal server error');
     } finally {
       await queryRunner.release();
     }

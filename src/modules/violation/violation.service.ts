@@ -5,9 +5,44 @@ import { UserEntity } from 'src/entities/user.entity';
 import { StudentEntity } from 'src/entities/student.entity';
 import { ViolationEntity } from 'src/entities/violation.entity';
 import { In } from 'typeorm';
+import { FilterDto } from 'src/commons/dto/filter.dto';
+import { PageOptionsDto } from 'src/commons/dto/page-option.dto';
+import { PageMetaDto } from 'src/commons/dto/page-meta.dto';
+import { PageDto } from 'src/commons/dto/page.dto';
 
 @Injectable()
 export class ViolationService {
+  async remove(id: number, userId: number) {
+    const violation = await this.violationRepository.findOne({
+      where: { id },
+    });
+    if (!violation) {
+      throw new NotFoundException('violation not found');
+    }
+    violation.deletedBy = userId;
+    violation.deletedAt = new Date();
+    return this.violationRepository.saveViolation(violation);
+  }
+  /**
+   * Finds a single violation by id
+   * @param id the violation id to find
+   * @throws {NotFoundException} if no violation is found
+   * @returns the found violation
+   */
+  findOne(id: number) {
+    return this.violationRepository.findOne({
+      where: { id },
+      relations: { violationTypes: true, creator: true, student: true },
+    });
+  }
+  async findAll(query: FilterDto, pageOptionsDto: PageOptionsDto) {
+    const [data, itemCount] = await this.violationRepository.findAll(
+      query,
+      pageOptionsDto,
+    );
+    const meta = new PageMetaDto({ pageOptionsDto, itemCount });
+    return new PageDto(data, meta);
+  }
   constructor(private readonly violationRepository: ViolationRepository) {}
 
   async createViolation(userId: number, body: CreateViolationDto) {
