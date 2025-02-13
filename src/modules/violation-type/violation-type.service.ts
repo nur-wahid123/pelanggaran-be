@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateViolationTypeDto } from './dto/create-violation-type.dto';
 import { UpdateViolationTypeDto } from './dto/update-violation-type.dto';
 import { ViolationTypeEntity } from 'src/entities/violation-type.entity';
@@ -12,6 +12,12 @@ import { PageDto } from 'src/commons/dto/page.dto';
 export class ViolationTypeService {
   async create(userId: number, createViolationTypeDto: CreateViolationTypeDto) {
     const { name, point } = createViolationTypeDto;
+    const exists = await this.violationTypeRepository.findOne({
+      where: { name },
+    });
+    if (exists) {
+      throw new BadRequestException(['violation type already exists']);
+    }
     const violationType = new ViolationTypeEntity();
     violationType.name = name;
     violationType.createdBy = userId;
