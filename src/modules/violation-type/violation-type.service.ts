@@ -1,5 +1,8 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { CreateViolationTypeDto } from './dto/create-violation-type.dto';
+import {
+  CreateViolationTypeBatchDto,
+  CreateViolationTypeDto,
+} from './dto/create-violation-type.dto';
 import { UpdateViolationTypeDto } from './dto/update-violation-type.dto';
 import { ViolationTypeEntity } from 'src/entities/violation-type.entity';
 import { ViolationTypeRepository } from 'src/repositories/violation-type.repository';
@@ -10,6 +13,15 @@ import { PageDto } from 'src/commons/dto/page.dto';
 
 @Injectable()
 export class ViolationTypeService {
+  createBatch(
+    userId: number,
+    createViolationTypeDto: CreateViolationTypeBatchDto,
+  ) {
+    return this.violationTypeRepository.saveViolations(
+      userId,
+      createViolationTypeDto,
+    );
+  }
   async create(userId: number, createViolationTypeDto: CreateViolationTypeDto) {
     const { name, point } = createViolationTypeDto;
     const exists = await this.violationTypeRepository.findOne({

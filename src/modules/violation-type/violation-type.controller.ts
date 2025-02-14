@@ -10,7 +10,10 @@ import {
   Query,
 } from '@nestjs/common';
 import { ViolationTypeService } from './violation-type.service';
-import { CreateViolationTypeDto } from './dto/create-violation-type.dto';
+import {
+  CreateViolationTypeBatchDto,
+  CreateViolationTypeDto,
+} from './dto/create-violation-type.dto';
 import { UpdateViolationTypeDto } from './dto/update-violation-type.dto';
 import { JwtAuthGuard } from 'src/commons/guards/jwt-auth.guard';
 import { Payload } from 'src/commons/decorators/payload.decorator';
@@ -29,6 +32,17 @@ export class ViolationTypeController {
     @Payload() payload: JwtPayload,
   ) {
     return this.violationTypeService.create(
+      +payload.sub,
+      createViolationTypeDto,
+    );
+  }
+
+  @Post('create-batch')
+  createBatch(
+    @Body() createViolationTypeDto: CreateViolationTypeBatchDto,
+    @Payload() payload: JwtPayload,
+  ) {
+    return this.violationTypeService.createBatch(
       +payload.sub,
       createViolationTypeDto,
     );

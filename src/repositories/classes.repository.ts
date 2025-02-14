@@ -34,7 +34,7 @@ export class ClassRepository extends Repository<ClassEntity> {
       await queryRunner.startTransaction();
       await queryRunner.manager.save(newClass);
       await queryRunner.commitTransaction();
-      return newClass;  
+      return newClass;
     } catch (error) {
       await queryRunner.rollbackTransaction();
       console.log(error);
