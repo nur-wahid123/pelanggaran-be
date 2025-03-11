@@ -9,6 +9,7 @@ import { FilterDto } from 'src/commons/dto/filter.dto';
 import { PageOptionsDto } from 'src/commons/dto/page-option.dto';
 import { PageMetaDto } from 'src/commons/dto/page-meta.dto';
 import { PageDto } from 'src/commons/dto/page.dto';
+import { QueryDateRangeDto } from 'src/commons/dto/query-daterange.dto';
 
 @Injectable()
 export class ViolationService {
@@ -35,10 +36,15 @@ export class ViolationService {
       relations: { violationTypes: true, creator: true, student: true },
     });
   }
-  async findAll(query: FilterDto, pageOptionsDto: PageOptionsDto) {
+  async findAll(
+    query: FilterDto,
+    pageOptionsDto: PageOptionsDto,
+    dateRange: QueryDateRangeDto,
+  ) {
     const [data, itemCount] = await this.violationRepository.findAll(
       query,
       pageOptionsDto,
+      dateRange,
     );
     const meta = new PageMetaDto({ pageOptionsDto, itemCount });
     return new PageDto(data, meta);

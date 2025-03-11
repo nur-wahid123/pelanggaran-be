@@ -18,6 +18,7 @@ import { FilterDto } from 'src/commons/dto/filter.dto';
 import { PageOptionsDto } from 'src/commons/dto/page-option.dto';
 import { SetRole } from 'src/commons/decorators/role.decorator';
 import { RoleEnum } from 'src/commons/enums/role.enum';
+import { QueryDateRangeDto } from 'src/commons/dto/query-daterange.dto';
 
 @Controller('violation')
 @UseGuards(JwtAuthGuard)
@@ -33,8 +34,12 @@ export class ViolationController {
   }
 
   @Get('list')
-  findAll(@Query() query: FilterDto, @Query() pageOptionsDto: PageOptionsDto) {
-    return this.violationService.findAll(query, pageOptionsDto);
+  findAll(
+    @Query() query: FilterDto,
+    @Query() pageOptionsDto: PageOptionsDto,
+    @Query() dateRange: QueryDateRangeDto,
+  ) {
+    return this.violationService.findAll(query, pageOptionsDto, dateRange);
   }
 
   @Get('detail/:id')

@@ -10,6 +10,7 @@ import { ViolationTypeModule } from './modules/violation-type/violation-type.mod
 import { StudentModule } from './modules/student/student.module';
 import { ClassesModule } from './modules/classes/classes.module';
 import { UserModule } from './modules/user/user.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { UserModule } from './modules/user/user.module';
     StudentModule,
     ClassesModule,
     UserModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [AppService],

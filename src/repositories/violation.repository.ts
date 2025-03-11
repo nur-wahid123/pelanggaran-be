@@ -1,6 +1,7 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { FilterDto } from 'src/commons/dto/filter.dto';
 import { PageOptionsDto } from 'src/commons/dto/page-option.dto';
+import { QueryDateRangeDto } from 'src/commons/dto/query-daterange.dto';
 import { ViolationTypeEntity } from 'src/entities/violation-type.entity';
 import { ViolationEntity } from 'src/entities/violation.entity';
 import { DataSource, Repository } from 'typeorm';
@@ -26,7 +27,9 @@ export class ViolationRepository extends Repository<ViolationEntity> {
   findAll(
     filter: FilterDto,
     pageOptionsDto: PageOptionsDto,
+    dateRange: QueryDateRangeDto,
   ): [ViolationEntity[], number] | PromiseLike<[ViolationEntity[], number]> {
+    const { startDate, finishDate } = dateRange;
     const { page, skip, take, order } = pageOptionsDto;
     const qB = this.datasource
       .createQueryBuilder(ViolationEntity, 'violation')
@@ -41,6 +44,11 @@ export class ViolationRepository extends Repository<ViolationEntity> {
             {
               search: `%${search}%`,
             },
+          );
+        }
+        if (startDate && finishDate) {
+          qb.andWhere(
+            `violation.createdAt BETWEEN '${startDate}' AND '${finishDate}'`,
           );
         }
       });
