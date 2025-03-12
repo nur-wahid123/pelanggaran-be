@@ -1,9 +1,11 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { FilterDto } from 'src/commons/dto/filter.dto';
 import { PageOptionsDto } from 'src/commons/dto/page-option.dto';
 import { QueryDateRangeDto } from 'src/commons/dto/query-daterange.dto';
+import { ViolationTypeEnum } from 'src/commons/enums/violation-type.enum';
+import { ViolationCollectionEntity } from 'src/entities/violation-collection.entity';
 import { ViolationTypeEntity } from 'src/entities/violation-type.entity';
 import { ViolationEntity } from 'src/entities/violation.entity';
+import { QueryViolationDto } from 'src/modules/violation/dto/query-violation.dto';
 import { DataSource, Repository } from 'typeorm';
 
 @Injectable()
@@ -25,19 +27,24 @@ export class ViolationRepository extends Repository<ViolationEntity> {
   }
 
   findAll(
-    filter: FilterDto,
+    filter: QueryViolationDto,
     pageOptionsDto: PageOptionsDto,
     dateRange: QueryDateRangeDto,
-  ): [ViolationEntity[], number] | PromiseLike<[ViolationEntity[], number]> {
+  ): [any[], number] {
     const { startDate, finishDate } = dateRange;
     const { page, skip, take, order } = pageOptionsDto;
+    const { search, type } = filter;
+    switch (type) {
+      case ViolationTypeEnum.COLLECTION:
+
+    }
     const qB = this.datasource
-      .createQueryBuilder(ViolationEntity, 'violation')
-      .leftJoinAndSelect('violation.creator', 'creator')
-      .leftJoinAndSelect('violation.student', 'student')
-      .leftJoinAndSelect('violation.violationTypes', 'violationTypes')
+      .createQueryBuilder(ViolationCollectionEntity, 'violationCollection')
+      .leftJoinAndSelect('violationCollection.violations', 'violations')
+      .leftJoinAndSelect('violations.creator', 'creator')
+      .leftJoinAndSelect('violations.student', 'student')
+      .leftJoinAndSelect('violations.violationTypes', 'violationTypes')
       .where((qb) => {
-        const { search } = filter;
         if (search) {
           qb.andWhere(
             '(lower(violationTypes.name) LIKE lower(:search) or lower(student.name) LIKE lower(:search) or lower(creator.name) LIKE lower(:search))',
@@ -48,7 +55,7 @@ export class ViolationRepository extends Repository<ViolationEntity> {
         }
         if (startDate && finishDate) {
           qb.andWhere(
-            `violation.createdAt BETWEEN '${startDate}' AND '${finishDate}'`,
+            `violations.createdAt BETWEEN '${startDate}' AND '${finishDate}'`,
           );
         }
       });
@@ -56,7 +63,7 @@ export class ViolationRepository extends Repository<ViolationEntity> {
     if (page && take) {
       qB.skip(skip).take(take);
     }
-    qB.orderBy('violation.id', order);
+    qB.orderBy('violations.id', order);
     return qB.getManyAndCount();
   }
   async saveViolations(violations: ViolationEntity[]) {
@@ -64,6 +71,12 @@ export class ViolationRepository extends Repository<ViolationEntity> {
     await queryRunner.connect();
     try {
       await queryRunner.startTransaction();
+      const violationCollection = new ViolationCollectionEntity();
+      await queryRunner.manager.save(violationCollection);
+      for (let index = 0; index < violations.length; index++) {
+        const violation = violations[index];
+        violation.violationCollection = violationCollection;
+      }
       await queryRunner.manager.save(violations);
       await queryRunner.commitTransaction();
     } catch (error) {

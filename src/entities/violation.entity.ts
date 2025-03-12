@@ -11,6 +11,7 @@ import { UserEntity } from './user.entity';
 import { StudentEntity } from './student.entity';
 import { ViolationTypeEntity } from './violation-type.entity';
 import { Expose } from 'class-transformer';
+import { ViolationCollectionEntity } from './violation-collection.entity';
 
 @Entity('violations')
 export class ViolationEntity extends CommonBaseEntity {
@@ -22,6 +23,9 @@ export class ViolationEntity extends CommonBaseEntity {
 
   @Column({ type: 'text', nullable: true })
   public note?: string;
+
+  @ManyToOne(() => ViolationCollectionEntity)
+  public violationCollection?: ViolationCollectionEntity;
 
   @ManyToOne(() => UserEntity, (user) => user.violations)
   public creator?: UserEntity;

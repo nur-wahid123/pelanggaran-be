@@ -5,11 +5,11 @@ import { UserEntity } from 'src/entities/user.entity';
 import { StudentEntity } from 'src/entities/student.entity';
 import { ViolationEntity } from 'src/entities/violation.entity';
 import { In } from 'typeorm';
-import { FilterDto } from 'src/commons/dto/filter.dto';
 import { PageOptionsDto } from 'src/commons/dto/page-option.dto';
 import { PageMetaDto } from 'src/commons/dto/page-meta.dto';
 import { PageDto } from 'src/commons/dto/page.dto';
 import { QueryDateRangeDto } from 'src/commons/dto/query-daterange.dto';
+import { QueryViolationDto } from './dto/query-violation.dto';
 
 @Injectable()
 export class ViolationService {
@@ -37,7 +37,7 @@ export class ViolationService {
     });
   }
   async findAll(
-    query: FilterDto,
+    query: QueryViolationDto,
     pageOptionsDto: PageOptionsDto,
     dateRange: QueryDateRangeDto,
   ) {

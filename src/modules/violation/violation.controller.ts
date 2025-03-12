@@ -14,11 +14,11 @@ import { JwtAuthGuard } from 'src/commons/guards/jwt-auth.guard';
 import { Payload } from 'src/commons/decorators/payload.decorator';
 import { JwtPayload } from '../auth/jwt-payload.interface';
 import { CreateViolationDto } from './dto/create-violation.dto';
-import { FilterDto } from 'src/commons/dto/filter.dto';
 import { PageOptionsDto } from 'src/commons/dto/page-option.dto';
 import { SetRole } from 'src/commons/decorators/role.decorator';
 import { RoleEnum } from 'src/commons/enums/role.enum';
 import { QueryDateRangeDto } from 'src/commons/dto/query-daterange.dto';
+import { QueryViolationDto } from './dto/query-violation.dto';
 
 @Controller('violation')
 @UseGuards(JwtAuthGuard)
@@ -35,7 +35,7 @@ export class ViolationController {
 
   @Get('list')
   findAll(
-    @Query() query: FilterDto,
+    @Query() query: QueryViolationDto,
     @Query() pageOptionsDto: PageOptionsDto,
     @Query() dateRange: QueryDateRangeDto,
   ) {
