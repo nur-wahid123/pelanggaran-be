@@ -7,11 +7,10 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { CommonBaseEntity } from './common-base.entity';
-import { UserEntity } from './user.entity';
 import { StudentEntity } from './student.entity';
 import { ViolationTypeEntity } from './violation-type.entity';
 import { Expose } from 'class-transformer';
-import { ViolationCollectionEntity } from './violation-collection.entity';
+import { UserEntity } from './user.entity';
 
 @Entity('violations')
 export class ViolationEntity extends CommonBaseEntity {
@@ -24,14 +23,12 @@ export class ViolationEntity extends CommonBaseEntity {
   @Column({ type: 'text', nullable: true })
   public note?: string;
 
-  @ManyToOne(() => ViolationCollectionEntity)
-  public violationCollection?: ViolationCollectionEntity;
-
   @ManyToOne(() => UserEntity, (user) => user.violations)
   public creator?: UserEntity;
 
-  @ManyToOne(() => StudentEntity, (s) => s.violations)
-  public student?: StudentEntity;
+  @ManyToMany(() => StudentEntity, (s) => s.violations)
+  @JoinTable()
+  public students?: StudentEntity[];
 
   @ManyToMany(() => ViolationTypeEntity, (vt) => vt.violations)
   @JoinTable()

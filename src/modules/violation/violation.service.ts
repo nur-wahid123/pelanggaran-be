@@ -33,7 +33,7 @@ export class ViolationService {
   findOne(id: number) {
     return this.violationRepository.findOne({
       where: { id },
-      relations: { violationTypes: true, creator: true, student: true },
+      relations: { violationTypes: true, students: true },
     });
   }
   async findAll(
@@ -71,20 +71,15 @@ export class ViolationService {
     if (violationTypes.length === 0) {
       throw new NotFoundException('student not found');
     }
-    const violations: ViolationEntity[] = [];
-    for (let index = 0; index < students.length; index++) {
-      const student = students[index];
-      const violation = new ViolationEntity();
-      violation.creator = user;
-      violation.student = student;
-      if (note) {
-        violation.note = note;
-      }
-      violation.violationTypes = violationTypes;
-      violation.date = new Date();
-      violation.createdBy = user.id;
-      violations.push(violation);
+    const violation = new ViolationEntity();
+    violation.creator = user;
+    if (note) {
+      violation.note = note;
     }
-    return this.violationRepository.saveViolations(violations);
+    violation.date = new Date();
+    violation.students = students;
+    violation.violationTypes = violationTypes;
+    violation.createdBy = user.id;
+    return this.violationRepository.saveViolations(violation);
   }
 }

@@ -37,7 +37,7 @@ export class DashboardService {
             COUNT(v.id) AS "data_count"
           FROM generate_series(0, 6) i
           LEFT JOIN "violations" v ON 
-            DATE(v."created_at") = (NOW() - INTERVAL '1 day' * i)::DATE
+            DATE(v."date") = (NOW() - INTERVAL '1 day' * i)::DATE
             AND v."deleted_at" IS NULL
           GROUP BY (NOW() - INTERVAL '1 day' * i)::DATE
           ORDER BY "date" ASC
@@ -65,7 +65,7 @@ export class DashboardService {
             COUNT(v.id) AS "data_count"
           FROM generate_series(0, 6) i
           LEFT JOIN "violations" v ON 
-            DATE(v."created_at") BETWEEN 
+            DATE(v."date") BETWEEN 
               (date_trunc('week', NOW()) - INTERVAL '1 week' * i)::DATE
               AND
               (date_trunc('week', NOW()) - INTERVAL '1 week' * i + INTERVAL '6 days')::DATE
@@ -94,7 +94,7 @@ export class DashboardService {
             COUNT(v.id) AS "data_count"
           FROM generate_series(0, 6) i
           LEFT JOIN "violations" v ON 
-            DATE(v."created_at") BETWEEN 
+            DATE(v."date") BETWEEN 
               date_trunc('month', NOW()) - INTERVAL '1 month' * i
               AND
               date_trunc('month', NOW()) - INTERVAL '1 month' * i + INTERVAL '1 month' - INTERVAL '1 day'
@@ -124,7 +124,7 @@ export class DashboardService {
       const data = await this.datasource
         .createQueryBuilder(ViolationEntity, 'violation')
         .leftJoin('violation.creator', 'creator')
-        .leftJoin('violation.student', 'student')
+        .leftJoin('violation.students', 'student')
         .leftJoin('violation.violationTypes', 'violationTypes')
         .select(
           'coalesce(sum(coalesce(violationTypes.point,0)),0)',
@@ -134,11 +134,11 @@ export class DashboardService {
         .where((qb) => {
           if (startDate && finishDate) {
             qb.andWhere(
-              `violation.createdAt BETWEEN '${startDate}' AND '${finishDate}'`,
+              `violation.date BETWEEN '${startDate}' AND '${finishDate}'`,
             );
           }
         })
-        .getRawOne<{ totalPoint: number; totalViolation: number }>();
+        .getRawOne<{ totalPoint: number }>();
       const mostStudent = await this.datasource
         .createQueryBuilder(StudentEntity, 'student')
         .leftJoin('student.violations', 'violations')
@@ -149,13 +149,10 @@ export class DashboardService {
         .addSelect('count(violations.id)', 'totalViolation')
         .where((qb) => {
           if (startDate && finishDate) {
-            qb.andWhere(
-              'violations.createdAt BETWEEN :startDate AND :finishDate',
-              {
-                startDate,
-                finishDate,
-              },
-            );
+            qb.andWhere('violations.date BETWEEN :startDate AND :finishDate', {
+              startDate,
+              finishDate,
+            });
           }
         })
         .groupBy('student.id')
@@ -166,7 +163,6 @@ export class DashboardService {
         .getRawOne();
       const dsb = new DashboardResponseDto();
       dsb.totalPoint = Number(data.totalPoint);
-      dsb.totalViolation = Number(data.totalViolation);
       dsb.studentWithMostViolation = mostStudent;
       const moreThan30 = await this.datasource
         .createQueryBuilder(StudentEntity, 'student')
@@ -182,13 +178,10 @@ export class DashboardService {
         .having('SUM(violationTypes.point) > 30')
         .where((qb) => {
           if (startDate && finishDate) {
-            qb.andWhere(
-              'violations.createdAt BETWEEN :startDate AND :finishDate',
-              {
-                startDate,
-                finishDate,
-              },
-            );
+            qb.andWhere('violations.date BETWEEN :startDate AND :finishDate', {
+              startDate,
+              finishDate,
+            });
           }
         })
         .groupBy('student.id')
@@ -210,13 +203,10 @@ export class DashboardService {
         .having('SUM(violationTypes.point) > 50')
         .where((qb) => {
           if (startDate && finishDate) {
-            qb.andWhere(
-              'violations.createdAt BETWEEN :startDate AND :finishDate',
-              {
-                startDate,
-                finishDate,
-              },
-            );
+            qb.andWhere('violations.date BETWEEN :startDate AND :finishDate', {
+              startDate,
+              finishDate,
+            });
           }
         })
         .groupBy('student.id')
@@ -238,13 +228,10 @@ export class DashboardService {
         .having('SUM(violationTypes.point) > 70')
         .where((qb) => {
           if (startDate && finishDate) {
-            qb.andWhere(
-              'violations.createdAt BETWEEN :startDate AND :finishDate',
-              {
-                startDate,
-                finishDate,
-              },
-            );
+            qb.andWhere('violations.date BETWEEN :startDate AND :finishDate', {
+              startDate,
+              finishDate,
+            });
           }
         })
         .groupBy('student.id')
@@ -257,25 +244,20 @@ export class DashboardService {
       const violationsThisMonth = await this.datasource
         .createQueryBuilder(ViolationEntity, 'violation')
         .where((qb) => {
-          qb.andWhere(
-            'violation.createdAt BETWEEN :startDate AND :finishDate',
-            {
-              startDate: formatDate(strMnth),
-              finishDate: formatDate(tdy),
-            },
-          );
+          qb.andWhere('violation.date BETWEEN :startDate AND :finishDate', {
+            startDate: formatDate(strMnth),
+            finishDate: formatDate(tdy),
+          });
         })
         .getCount();
+      dsb.totalViolation = Number(violationsThisMonth);
       const violationsLastMonth = await this.datasource
         .createQueryBuilder(ViolationEntity, 'violation')
         .where((qb) => {
-          qb.andWhere(
-            'violation.createdAt BETWEEN :startDate AND :finishDate',
-            {
-              startDate: formatDate(lsMnth),
-              finishDate: formatDate(tdyLmnth),
-            },
-          );
+          qb.andWhere('violation.date BETWEEN :startDate AND :finishDate', {
+            startDate: formatDate(lsMnth),
+            finishDate: formatDate(tdyLmnth),
+          });
         })
         .getCount();
 
@@ -294,13 +276,10 @@ export class DashboardService {
         .orderBy('totalViolation', 'DESC')
         .where((qb) => {
           if (startDate && finishDate) {
-            qb.andWhere(
-              'violations.createdAt BETWEEN :startDate AND :finishDate',
-              {
-                startDate,
-                finishDate,
-              },
-            );
+            qb.andWhere('violations.date BETWEEN :startDate AND :finishDate', {
+              startDate,
+              finishDate,
+            });
           }
         })
         .limit(1)

@@ -14,5 +14,5 @@ export class ViolationTypeEntity extends CommonBaseEntity {
   public point?: number;
 
   @ManyToMany(() => ViolationEntity, (v) => v.violationTypes)
-  public violations?: ViolationEntity;
+  public violations?: ViolationEntity[];
 }

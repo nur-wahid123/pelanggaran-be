@@ -2,7 +2,7 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { PageOptionsDto } from 'src/commons/dto/page-option.dto';
 import { QueryDateRangeDto } from 'src/commons/dto/query-daterange.dto';
 import { ViolationTypeEnum } from 'src/commons/enums/violation-type.enum';
-import { ViolationCollectionEntity } from 'src/entities/violation-collection.entity';
+import { StudentEntity } from 'src/entities/student.entity';
 import { ViolationTypeEntity } from 'src/entities/violation-type.entity';
 import { ViolationEntity } from 'src/entities/violation.entity';
 import { QueryViolationDto } from 'src/modules/violation/dto/query-violation.dto';
@@ -30,20 +30,85 @@ export class ViolationRepository extends Repository<ViolationEntity> {
     filter: QueryViolationDto,
     pageOptionsDto: PageOptionsDto,
     dateRange: QueryDateRangeDto,
-  ): [any[], number] {
-    const { startDate, finishDate } = dateRange;
-    const { page, skip, take, order } = pageOptionsDto;
-    const { search, type } = filter;
-    switch (type) {
-      case ViolationTypeEnum.COLLECTION:
-
+  ): Promise<[any[], number]> {
+    const { type } = filter;
+    try {
+      switch (type) {
+        case ViolationTypeEnum.COLLECTION:
+          return this.findAllViolationCollection(
+            filter,
+            pageOptionsDto,
+            dateRange,
+          );
+        case ViolationTypeEnum.PER_STUDENT:
+          return this.findAllViolationStudent(
+            filter,
+            pageOptionsDto,
+            dateRange,
+          );
+        case ViolationTypeEnum.PER_VIOLATION_TYPE:
+          return this.findAllViolationType(filter, pageOptionsDto, dateRange);
+        default:
+          throw new InternalServerErrorException('internal server error');
+      }
+    } catch (e) {
+      console.log(e);
+      throw new InternalServerErrorException('internal server error');
     }
+  }
+  findAllViolationCollection(
+    filter: QueryViolationDto,
+    pageOptionsDto: PageOptionsDto,
+    dateRange: QueryDateRangeDto,
+  ): Promise<[any[], number]> {
+    const { search } = filter;
+    const { startDate, finishDate } = dateRange;
     const qB = this.datasource
-      .createQueryBuilder(ViolationCollectionEntity, 'violationCollection')
-      .leftJoinAndSelect('violationCollection.violations', 'violations')
-      .leftJoinAndSelect('violations.creator', 'creator')
-      .leftJoinAndSelect('violations.student', 'student')
-      .leftJoinAndSelect('violations.violationTypes', 'violationTypes')
+      .createQueryBuilder(ViolationEntity, 'vi')
+      .leftJoinAndSelect('vi.creator', 'creator')
+      .leftJoinAndSelect('vi.students', 'student')
+      .leftJoinAndSelect('vi.violationTypes', 'violationType')
+      .addSelect(['violationType.name', 'violationType.point'])
+      .addSelect(['student.name', 'student.nationalStudentId'])
+      .addSelect(['vi.createdAt', 'vi.date'])
+      .addSelect(['creator.name'])
+      .where((qb) => {
+        if (search) {
+          qb.andWhere(
+            '(lower(violationType.name) LIKE lower(:search) or lower(student.name) LIKE lower(:search) or lower(creator.name) LIKE lower(:search))',
+            {
+              search: `%${search}%`,
+            },
+          );
+        }
+        if (startDate && finishDate) {
+          qb.andWhere(`vi.date BETWEEN '${startDate}' AND '${finishDate}'`);
+        }
+      });
+
+    const { page, skip, take } = pageOptionsDto;
+    if (page && take) {
+      qB.skip(skip).take(take);
+    }
+    qB.orderBy('vi.id', 'DESC');
+    return qB.getManyAndCount();
+  }
+  findAllViolationType(
+    filter: QueryViolationDto,
+    pageOptionsDto: PageOptionsDto,
+    dateRange: QueryDateRangeDto,
+  ): Promise<[any[], number]> {
+    const { search } = filter;
+    const { startDate, finishDate } = dateRange;
+    const qB = this.datasource
+      .createQueryBuilder(ViolationTypeEntity, 'violationTypes')
+      .leftJoinAndSelect('violationTypes.violations', 'vi')
+      .leftJoinAndSelect('vi.creator', 'creator')
+      .leftJoinAndSelect('vi.students', 'student')
+      .addSelect(['violationTypes.name', 'violationTypes.point'])
+      .addSelect(['student.name', 'student.nationalStudentId'])
+      .addSelect(['vi.createdAt'])
+      .addSelect(['creator.name'])
       .where((qb) => {
         if (search) {
           qb.andWhere(
@@ -54,29 +119,60 @@ export class ViolationRepository extends Repository<ViolationEntity> {
           );
         }
         if (startDate && finishDate) {
-          qb.andWhere(
-            `violations.createdAt BETWEEN '${startDate}' AND '${finishDate}'`,
-          );
+          qb.andWhere(`vi.date BETWEEN '${startDate}' AND '${finishDate}'`);
         }
       });
 
+    const { page, skip, take, order } = pageOptionsDto;
     if (page && take) {
       qB.skip(skip).take(take);
     }
-    qB.orderBy('violations.id', order);
+    qB.orderBy('vi.id', order);
     return qB.getManyAndCount();
   }
-  async saveViolations(violations: ViolationEntity[]) {
+  findAllViolationStudent(
+    filter: QueryViolationDto,
+    pageOptionsDto: PageOptionsDto,
+    dateRange: QueryDateRangeDto,
+  ): Promise<[any[], number]> {
+    const { search } = filter;
+    const { startDate, finishDate } = dateRange;
+    const qB = this.datasource
+      .createQueryBuilder(StudentEntity, 'st')
+      .leftJoinAndSelect('st.violations', 'vi')
+      .leftJoinAndSelect('vi.creator', 'creator')
+      .leftJoinAndSelect('vi.violationTypes', 'violationTypes')
+      .addSelect(['violationTypes.name', 'violationTypes.point'])
+      .addSelect(['st.name', 'st.nationalStudentId'])
+      .addSelect(['vi.createdAt'])
+      .addSelect(['creator.name'])
+      .where((qb) => {
+        if (search) {
+          qb.andWhere(
+            '(lower(violationTypes.name) LIKE lower(:search) or lower(st.name) LIKE lower(:search) or lower(creator.name) LIKE lower(:search))',
+            {
+              search: `%${search}%`,
+            },
+          );
+        }
+        if (startDate && finishDate) {
+          qb.andWhere(`vi.date BETWEEN '${startDate}' AND '${finishDate}'`);
+        }
+      });
+
+    const { page, skip, take } = pageOptionsDto;
+    if (page && take) {
+      qB.skip(skip).take(take);
+    }
+    qB.orderBy('vi.id', 'DESC');
+    return qB.getManyAndCount();
+  }
+
+  async saveViolations(violations: ViolationEntity) {
     const queryRunner = this.datasource.createQueryRunner();
     await queryRunner.connect();
     try {
       await queryRunner.startTransaction();
-      const violationCollection = new ViolationCollectionEntity();
-      await queryRunner.manager.save(violationCollection);
-      for (let index = 0; index < violations.length; index++) {
-        const violation = violations[index];
-        violation.violationCollection = violationCollection;
-      }
       await queryRunner.manager.save(violations);
       await queryRunner.commitTransaction();
     } catch (error) {

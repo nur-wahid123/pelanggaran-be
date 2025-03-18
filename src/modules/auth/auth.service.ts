@@ -46,6 +46,7 @@ export class AuthService {
       return token;
     } catch (error) {
       console.log(error);
+      throw error;
       throw new InternalServerErrorException('internal server error');
     }
   }
