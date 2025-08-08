@@ -4,6 +4,8 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
+import { FilterDto } from 'src/commons/dto/filter.dto';
+import { PageOptionsDto } from 'src/commons/dto/page-option.dto';
 import HashPassword from 'src/commons/utils/hash-password.util';
 import { UserEntity } from 'src/entities/user.entity';
 import { UserLoginDto } from 'src/modules/auth/dto/login-user.dto';
@@ -11,6 +13,23 @@ import { DataSource, Repository } from 'typeorm';
 
 @Injectable()
 export class UserRepository extends Repository<UserEntity> {
+  findAll(pageOptionsDto: PageOptionsDto, filter: FilterDto) {
+    const { page, skip, take, order } = pageOptionsDto;
+    const qB = this.createQueryBuilder('user')
+      .where((qb) => {
+        const { search } = filter;
+        if (search) {
+          qb.andWhere('(lower(user.username) LIKE lower(:search))', {
+            search: `%${search}%`,
+          });
+        }
+      })
+      .orderBy('user.id', order);
+    if (page && take) {
+      qB.skip(skip).take(take);
+    }
+    return qB.getManyAndCount();
+  }
   async saveUser(newUser: UserEntity): Promise<UserEntity> {
     const queryRunner = this.datasource.createQueryRunner();
     await queryRunner.connect();

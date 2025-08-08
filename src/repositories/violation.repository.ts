@@ -61,7 +61,7 @@ export class ViolationRepository extends Repository<ViolationEntity> {
     pageOptionsDto: PageOptionsDto,
     dateRange: QueryDateRangeDto,
   ): Promise<[any[], number]> {
-    const { search } = filter;
+    const { search, studentId, violationTypeId } = filter;
     const { startDate, finishDate } = dateRange;
     const qB = this.datasource
       .createQueryBuilder(ViolationEntity, 'vi')
@@ -73,6 +73,14 @@ export class ViolationRepository extends Repository<ViolationEntity> {
       .addSelect(['vi.createdAt', 'vi.date'])
       .addSelect(['creator.name'])
       .where((qb) => {
+        if (studentId) {
+          qb.andWhere('student.nationalStudentId = :studentId', { studentId });
+        }
+        if (violationTypeId) {
+          qb.andWhere('violationTypes.id = :violationTypeId', {
+            violationTypeId,
+          });
+        }
         if (search) {
           qb.andWhere(
             '(lower(violationType.name) LIKE lower(:search) or lower(student.name) LIKE lower(:search) or lower(creator.name) LIKE lower(:search))',
@@ -98,7 +106,7 @@ export class ViolationRepository extends Repository<ViolationEntity> {
     pageOptionsDto: PageOptionsDto,
     dateRange: QueryDateRangeDto,
   ): Promise<[any[], number]> {
-    const { search } = filter;
+    const { search, studentId, violationTypeId } = filter;
     const { startDate, finishDate } = dateRange;
     const qB = this.datasource
       .createQueryBuilder(ViolationTypeEntity, 'violationTypes')
@@ -110,6 +118,14 @@ export class ViolationRepository extends Repository<ViolationEntity> {
       .addSelect(['vi.createdAt'])
       .addSelect(['creator.name'])
       .where((qb) => {
+        if (studentId) {
+          qb.andWhere('student.nationalStudentId = :studentId', { studentId });
+        }
+        if (violationTypeId) {
+          qb.andWhere('violationTypes.id = :violationTypeId', {
+            violationTypeId,
+          });
+        }
         if (search) {
           qb.andWhere(
             '(lower(violationTypes.name) LIKE lower(:search) or lower(student.name) LIKE lower(:search) or lower(creator.name) LIKE lower(:search))',
@@ -135,18 +151,28 @@ export class ViolationRepository extends Repository<ViolationEntity> {
     pageOptionsDto: PageOptionsDto,
     dateRange: QueryDateRangeDto,
   ): Promise<[any[], number]> {
-    const { search } = filter;
+    const { search, studentId, violationTypeId } = filter;
     const { startDate, finishDate } = dateRange;
     const qB = this.datasource
       .createQueryBuilder(StudentEntity, 'st')
       .leftJoinAndSelect('st.violations', 'vi')
       .leftJoinAndSelect('vi.creator', 'creator')
+      .leftJoin('st.studentClass', 'studentClass')
       .leftJoinAndSelect('vi.violationTypes', 'violationTypes')
       .addSelect(['violationTypes.name', 'violationTypes.point'])
       .addSelect(['st.name', 'st.nationalStudentId'])
       .addSelect(['vi.createdAt'])
+      .addSelect(['studentClass.name'])
       .addSelect(['creator.name'])
       .where((qb) => {
+        if (studentId) {
+          qb.andWhere('student.id = :studentId', { studentId });
+        }
+        if (violationTypeId) {
+          qb.andWhere('violationType.id = :violationTypeId', {
+            violationTypeId,
+          });
+        }
         if (search) {
           qb.andWhere(
             '(lower(violationTypes.name) LIKE lower(:search) or lower(st.name) LIKE lower(:search) or lower(creator.name) LIKE lower(:search))',

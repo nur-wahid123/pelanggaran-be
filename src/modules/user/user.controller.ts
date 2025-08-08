@@ -1,7 +1,53 @@
-import { Controller } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Put,
+  UseGuards,
+} from '@nestjs/common';
 import { UserService } from './user.service';
+import { PageOptionsDto } from 'src/commons/dto/page-option.dto';
+import { FilterDto } from 'src/commons/dto/filter.dto';
+import { JwtAuthGuard } from 'src/commons/guards/jwt-auth.guard';
+import { SetRole } from 'src/commons/decorators/role.decorator';
+import { RoleEnum } from 'src/commons/enums/role.enum';
+import { UserUpdateDto } from './dto/user-update.dto';
+import { Payload } from 'src/commons/decorators/payload.decorator';
+import { JwtPayload } from '../auth/jwt-payload.interface';
+import { UserCreateDto } from './dto/user-create.dto';
 
-@Controller('user')
+@Controller('users')
+@UseGuards(JwtAuthGuard)
 export class UserController {
   constructor(private readonly userService: UserService) {}
+
+  @Get('list')
+  @SetRole(RoleEnum.ADMIN)
+  findAll(@Param() pageOptionsDto: PageOptionsDto, @Param() filter: FilterDto) {
+    return this.userService.findAll(pageOptionsDto, filter);
+  }
+
+  @Get('detail/:id')
+  @SetRole(RoleEnum.ADMIN)
+  findOne(@Param('id') id: string) {
+    return this.userService.findOne(+id);
+  }
+
+  @Put('edit/:id')
+  @SetRole(RoleEnum.ADMIN)
+  update(
+    @Param('id') id: string,
+    @Body() body: UserUpdateDto,
+    @Payload() payload: JwtPayload,
+  ) {
+    return this.userService.update(+id, body, +payload.sub);
+  }
+
+  @Post('create')
+  @SetRole(RoleEnum.ADMIN)
+  create(@Body() body: UserCreateDto, @Payload() payload: JwtPayload) {
+    return this.userService.create(body, +payload.sub);
+  }
 }

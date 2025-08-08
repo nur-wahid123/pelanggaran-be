@@ -18,8 +18,8 @@ import { UpdateViolationTypeDto } from './dto/update-violation-type.dto';
 import { JwtAuthGuard } from 'src/commons/guards/jwt-auth.guard';
 import { Payload } from 'src/commons/decorators/payload.decorator';
 import { JwtPayload } from '../auth/jwt-payload.interface';
-import { FilterDto } from 'src/commons/dto/filter.dto';
 import { PageOptionsDto } from 'src/commons/dto/page-option.dto';
+import { QueryViolationTypeDto } from './dto/query-violation-type.dto';
 
 @Controller('violation-type')
 @UseGuards(JwtAuthGuard)
@@ -49,7 +49,10 @@ export class ViolationTypeController {
   }
 
   @Get('list')
-  findAll(@Query() query: FilterDto, @Query() pageOptionsDto: PageOptionsDto) {
+  findAll(
+    @Query() query: QueryViolationTypeDto,
+    @Query() pageOptionsDto: PageOptionsDto,
+  ) {
     return this.violationTypeService.findAll(query, pageOptionsDto);
   }
 

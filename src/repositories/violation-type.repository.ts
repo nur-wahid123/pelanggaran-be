@@ -1,8 +1,8 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { FilterDto } from 'src/commons/dto/filter.dto';
 import { PageOptionsDto } from 'src/commons/dto/page-option.dto';
 import { ViolationTypeEntity } from 'src/entities/violation-type.entity';
 import { CreateViolationTypeBatchDto } from 'src/modules/violation-type/dto/create-violation-type.dto';
+import { QueryViolationTypeDto } from 'src/modules/violation-type/dto/query-violation-type.dto';
 import { DataSource, In, Repository } from 'typeorm';
 
 @Injectable()
@@ -42,13 +42,20 @@ export class ViolationTypeRepository extends Repository<ViolationTypeEntity> {
       await queryRunner.release();
     }
   }
-  findAll(filter: FilterDto, pageOptionsDto: PageOptionsDto) {
+  findAll(filter: QueryViolationTypeDto, pageOptionsDto: PageOptionsDto) {
     const { page, skip, take, order } = pageOptionsDto;
     const query = this.datasource
       .createQueryBuilder(ViolationTypeEntity, 'violationType')
       .leftJoinAndSelect('violationType.violations', 'violations')
+      .leftJoinAndSelect('violations.students', 'students')
       .where((qb) => {
-        const { search } = filter;
+        const { search, studentId, violationId } = filter;
+        if (violationId) {
+          qb.andWhere('violations.id = :violationId', { violationId });
+        }
+        if (studentId) {
+          qb.andWhere('students.nationalStudentId = :studentId', { studentId });
+        }
         if (search) {
           qb.andWhere('lower(violationType.name) LIKE lower(:search)', {
             search: `%${search}%`,

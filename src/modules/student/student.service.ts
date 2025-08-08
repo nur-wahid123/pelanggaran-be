@@ -55,8 +55,15 @@ export class StudentService {
     return student;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} student`;
+  findOne(id: string) {
+    const data = this.studentRepository.findOne({
+      where: { nationalStudentId: id },
+      relations: { studentClass: true },
+    });
+    if (!data) {
+      throw new NotFoundException('student not found');
+    }
+    return data;
   }
 
   update(id: number, updateStudentDto: UpdateStudentDto) {

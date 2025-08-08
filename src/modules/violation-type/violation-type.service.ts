@@ -6,10 +6,10 @@ import {
 import { UpdateViolationTypeDto } from './dto/update-violation-type.dto';
 import { ViolationTypeEntity } from 'src/entities/violation-type.entity';
 import { ViolationTypeRepository } from 'src/repositories/violation-type.repository';
-import { FilterDto } from 'src/commons/dto/filter.dto';
 import { PageOptionsDto } from 'src/commons/dto/page-option.dto';
 import { PageMetaDto } from 'src/commons/dto/page-meta.dto';
 import { PageDto } from 'src/commons/dto/page.dto';
+import { QueryViolationTypeDto } from './dto/query-violation-type.dto';
 
 @Injectable()
 export class ViolationTypeService {
@@ -42,7 +42,7 @@ export class ViolationTypeService {
     private readonly violationTypeRepository: ViolationTypeRepository,
   ) {}
 
-  async findAll(filter: FilterDto, pageOptionsDto: PageOptionsDto) {
+  async findAll(filter: QueryViolationTypeDto, pageOptionsDto: PageOptionsDto) {
     const [data, itemCount] = await this.violationTypeRepository.findAll(
       filter,
       pageOptionsDto,

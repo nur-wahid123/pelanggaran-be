@@ -33,7 +33,7 @@ export class ViolationService {
   findOne(id: number) {
     return this.violationRepository.findOne({
       where: { id },
-      relations: { violationTypes: true, students: true },
+      relations: { violationTypes: true, students: true, creator: true },
     });
   }
   async findAll(
