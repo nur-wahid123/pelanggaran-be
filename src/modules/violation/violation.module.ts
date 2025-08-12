@@ -2,9 +2,20 @@ import { Module } from '@nestjs/common';
 import { ViolationService } from './violation.service';
 import { ViolationController } from './violation.controller';
 import { ViolationRepository } from 'src/repositories/violation.repository';
+import { ImageService } from '../image/image.service';
+import { ImageRepository } from 'src/repositories/image.repository';
+import { ImageLinkRepository } from 'src/repositories/image-link.repository';
+import { MinioService } from './minio.service';
 
 @Module({
   controllers: [ViolationController],
-  providers: [ViolationService, ViolationRepository],
+  providers: [
+    ViolationService,
+    ImageService,
+    ImageRepository,
+    ImageLinkRepository,
+    MinioService,
+    ViolationRepository,
+  ],
 })
 export class ViolationModule {}

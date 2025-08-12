@@ -26,6 +26,9 @@ export class ViolationEntity extends CommonBaseEntity {
   @ManyToOne(() => UserEntity, (user) => user.violations)
   public creator?: UserEntity;
 
+  @Column({ nullable: true })
+  imageGroupId: number;
+
   @ManyToMany(() => StudentEntity, (s) => s.violations)
   @JoinTable()
   public students?: StudentEntity[];

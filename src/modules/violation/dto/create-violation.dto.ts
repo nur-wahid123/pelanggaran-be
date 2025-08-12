@@ -3,6 +3,7 @@ import {
   ArrayNotEmpty,
   IsArray,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
 } from 'class-validator';
@@ -13,6 +14,11 @@ export class CreateViolationDto {
   @ArrayNotEmpty()
   @Expose({ name: 'student_ids' })
   public studentIds?: number[];
+
+  @IsOptional()
+  @IsNumber()
+  @Expose({ name: 'image_id' })
+  public imageId?: number;
 
   @IsNotEmpty()
   @IsArray()

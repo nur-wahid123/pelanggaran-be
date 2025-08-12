@@ -10,6 +10,7 @@ import { PageMetaDto } from 'src/commons/dto/page-meta.dto';
 import { PageDto } from 'src/commons/dto/page.dto';
 import { QueryDateRangeDto } from 'src/commons/dto/query-daterange.dto';
 import { QueryViolationDto } from './dto/query-violation.dto';
+import { ImageService } from '../image/image.service';
 
 @Injectable()
 export class ViolationService {
@@ -49,7 +50,10 @@ export class ViolationService {
     const meta = new PageMetaDto({ pageOptionsDto, itemCount });
     return new PageDto(data, meta);
   }
-  constructor(private readonly violationRepository: ViolationRepository) {}
+  constructor(
+    private readonly violationRepository: ViolationRepository,
+    private readonly imageService: ImageService,
+  ) {}
 
   async createViolation(userId: number, body: CreateViolationDto) {
     const { note, studentIds, violationTypeIds } = body;
@@ -76,6 +80,7 @@ export class ViolationService {
     if (note) {
       violation.note = note;
     }
+    violation.imageGroupId = body.imageId;
     violation.date = new Date();
     violation.students = students;
     violation.violationTypes = violationTypes;

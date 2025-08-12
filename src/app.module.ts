@@ -11,6 +11,7 @@ import { StudentModule } from './modules/student/student.module';
 import { ClassesModule } from './modules/classes/classes.module';
 import { UserModule } from './modules/user/user.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { ImageModule } from './modules/image/image.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
     TypeOrmModule.forRootAsync(typeOrmAsyncConfig),
     ViolationModule,
     AuthModule,
+    ImageModule,
     ViolationModule,
     ViolationTypeModule,
     StudentModule,
