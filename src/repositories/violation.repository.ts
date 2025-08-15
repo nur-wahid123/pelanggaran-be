@@ -77,7 +77,7 @@ export class ViolationRepository extends Repository<ViolationEntity> {
           qb.andWhere('student.nationalStudentId = :studentId', { studentId });
         }
         if (violationTypeId) {
-          qb.andWhere('violationTypes.id = :violationTypeId', {
+          qb.andWhere('violationType.id = :violationTypeId', {
             violationTypeId,
           });
         }

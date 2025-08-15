@@ -12,12 +12,11 @@ import { Observable } from 'rxjs';
 @Injectable()
 export class TransformInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-    return next
-      .handle()
-      .pipe(
-        map((data) =>
-          data instanceof StreamableFile ? data : classToPlain(data),
-        ),
-      );
+    return next.handle().pipe(
+      map(
+        (data) => (data instanceof StreamableFile ? data : classToPlain(data)),
+        // classToPlain(data),
+      ),
+    );
   }
 }
