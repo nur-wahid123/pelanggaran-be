@@ -76,10 +76,16 @@ export class AuthService {
     }
 
     const newUser = new UserEntity();
-    await this.userRepository.checkUsernameAndEmailExistanceOnDB(
-      username,
-      email,
-    );
+    try {
+      await this.userRepository.checkUsernameAndEmailExistanceOnDB(
+        username,
+        email,
+      );
+    } catch (error) {
+      console.log(error);
+      console.log('user exists');
+      return;
+    }
     newUser.username = username;
     newUser.email = email;
     newUser.name = name;
