@@ -3,7 +3,11 @@ import {
   PutObjectCommand,
   S3Client,
 } from '@aws-sdk/client-s3';
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { Readable } from 'stream';
 
 @Injectable()
@@ -23,14 +27,23 @@ export class MinioService {
     });
   }
   async uploadBuffer(key: string, buffer: Buffer, contentType: string) {
-    const cmd = new PutObjectCommand({
-      Bucket: this.bucket,
-      Key: key,
-      Body: buffer,
-      ContentType: contentType,
-    });
-    await this.client.send(cmd);
-    return { key };
+    try {
+      console.log(15);
+      const cmd = new PutObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+        Body: buffer,
+        ContentType: contentType,
+      });
+      console.log(16);
+      await this.client.send(cmd);
+      console.log(17);
+      return { key };
+    } catch (error) {
+      console.log(18);
+      console.log(error);
+      throw new InternalServerErrorException('internal server error');
+    }
   }
   async getObjectStream(key: string): Promise<Readable> {
     const cmd = new GetObjectCommand({
