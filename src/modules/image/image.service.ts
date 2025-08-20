@@ -36,32 +36,23 @@ export class ImageService {
     const query = await this.imageLinkRepository.query(
       'SELECT MAX(id) from image_links',
     );
-    console.log(1);
     const maxId = query[0].max || 0;
-    console.log(2);
     // const maxId = await this.imageLinkRepository.maximum('id');
     for (const file of files) {
-      console.log(3);
       let resized: Buffer;
       try {
-        console.log(4);
         resized = await sharp(file.buffer)
           .rotate()
           .resize({ width: 1200, withoutEnlargement: true }) // contoh: max width 1200
           .jpeg({ quality: 75 })
           .toBuffer();
-        console.log(5);
       } catch (e) {
-        console.log(6);
         console.log(e);
       }
-      console.log(7);
 
       const key = `${Date.now()}-${randomUUID()}.${file.mimetype.split('/')[1]}`;
-      console.log(8);
 
       await this.minio.uploadBuffer(key, resized, 'image/jpeg');
-      console.log(9);
 
       const img = this.imageRepository.create({
         originalName: file.originalname,
@@ -69,21 +60,16 @@ export class ImageService {
         mimetype: 'image/jpeg',
         size: resized.length,
       });
-      console.log(10);
       const savedImage = await this.imageRepository.saveImage(img);
-      console.log(11);
 
       const imageLink = this.imageLinkRepository.create({
         id: maxId + 1,
         image: savedImage,
         imageId: savedImage.id,
       });
-      console.log(12);
       imageLinks.push(imageLink);
-      console.log(13);
     }
     await this.imageLinkRepository.saveImageLinks(imageLinks);
-    console.log(14);
     return maxId + 1;
   }
 

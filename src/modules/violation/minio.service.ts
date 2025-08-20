@@ -28,19 +28,15 @@ export class MinioService {
   }
   async uploadBuffer(key: string, buffer: Buffer, contentType: string) {
     try {
-      console.log(15);
       const cmd = new PutObjectCommand({
         Bucket: this.bucket,
         Key: key,
         Body: buffer,
         ContentType: contentType,
       });
-      console.log(16);
       await this.client.send(cmd);
-      console.log(17);
       return { key };
     } catch (error) {
-      console.log(18);
       console.log(error);
       throw new InternalServerErrorException('internal server error');
     }

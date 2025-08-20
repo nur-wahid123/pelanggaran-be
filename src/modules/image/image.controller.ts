@@ -19,7 +19,9 @@ import { NoTransformInterceptor } from 'src/commons/interceptors/no-transform.in
 export class ImageController {
   constructor(private readonly imageService: ImageService) {}
   @Post('upload')
-  @UseInterceptors(FilesInterceptor('files'))
+  @UseInterceptors(
+    FilesInterceptor('files', 10, { limits: { fileSize: 10 * 1024 * 1024 } }),
+  )
   async create(@UploadedFiles() files: Express.Multer.File[], @Body() body) {
     console.log(body);
     return await this.imageService.processAndUpload(files);

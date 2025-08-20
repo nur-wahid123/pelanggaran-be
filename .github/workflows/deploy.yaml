@@ -63,7 +63,8 @@ jobs:
             docker pull indrafajar/pelanggaran:latest
             docker stop pelanggaran-run || true
             docker rm pelanggaran-run || true
-            docker cp ~/pelanggaran-be/.env pelanggaran-run:/usr/src/app/
             docker run -d --name pelanggaran-run --restart unless-stopped --network my-app -p 4000:3000 indrafajar/pelanggaran:latest
+            docker cp ~/pelanggaran-be/.env pelanggaran-run:/usr/src/app/
+            docker restart pelanggaran-run
             docker image prune -f
           EOF
