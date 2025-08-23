@@ -2,10 +2,12 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { PageOptionsDto } from 'src/commons/dto/page-option.dto';
 import { QueryDateRangeDto } from 'src/commons/dto/query-daterange.dto';
 import { ViolationTypeEnum } from 'src/commons/enums/violation-type.enum';
+import { ImageLinks } from 'src/entities/image-links.entity';
 import { StudentEntity } from 'src/entities/student.entity';
 import { ViolationTypeEntity } from 'src/entities/violation-type.entity';
 import { ViolationEntity } from 'src/entities/violation.entity';
 import { QueryViolationDto } from 'src/modules/violation/dto/query-violation.dto';
+import { ViolationResponseDto } from 'src/modules/violation/dto/violent-response.dto';
 import { DataSource, Repository } from 'typeorm';
 
 @Injectable()
@@ -56,7 +58,7 @@ export class ViolationRepository extends Repository<ViolationEntity> {
       throw new InternalServerErrorException('internal server error');
     }
   }
-  findAllViolationCollection(
+  async findAllViolationCollection(
     filter: QueryViolationDto,
     pageOptionsDto: PageOptionsDto,
     dateRange: QueryDateRangeDto,
@@ -99,7 +101,28 @@ export class ViolationRepository extends Repository<ViolationEntity> {
       qB.skip(skip).take(take);
     }
     qB.orderBy('vi.id', 'DESC');
-    return qB.getManyAndCount();
+    const data = qB.getManyAndCount();
+    const [violations, count] = await data;
+    const imageGroupIds = violations.map((violation) => violation.imageGroupId);
+    const imageGroups = await this.datasource
+      .createQueryBuilder(ImageLinks, 'imageGroup')
+      .where('imageGroup.id IN (:...imageGroupIds)', {
+        imageGroupIds,
+      })
+      .select(['imageGroup.id', 'imageGroup.imageId'])
+      .getMany();
+    const dataNew = violations.map((violation) => {
+      const imageGroup = imageGroups.find(
+        (imageGroup) => imageGroup.id === violation.imageGroupId,
+      );
+      const res = new ViolationResponseDto(violation);
+      if (imageGroup) {
+        res.images = [imageGroup.imageId];
+      }
+      return res;
+    });
+    // violations.forEach((violation) => {
+    return [dataNew, count];
   }
   findAllViolationType(
     filter: QueryViolationDto,
