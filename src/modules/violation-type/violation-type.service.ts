@@ -54,7 +54,10 @@ export class ViolationTypeService {
   }
 
   findOne(id: number) {
-    return this.violationTypeRepository.findOne({ where: { id } });
+    return this.violationTypeRepository.findOne({
+      where: { id },
+      relations: { violations: { students: true } },
+    });
   }
 
   async update(
