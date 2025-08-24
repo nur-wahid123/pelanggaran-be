@@ -12,6 +12,7 @@ import { ClassesModule } from './modules/classes/classes.module';
 import { UserModule } from './modules/user/user.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { ImageModule } from './modules/image/image.module';
+import { SchoolProfileModule } from './modules/school-profile/school-profile.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { ImageModule } from './modules/image/image.module';
     ClassesModule,
     UserModule,
     DashboardModule,
+    SchoolProfileModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -7,6 +7,7 @@ import * as cookieParser from 'cookie-parser';
 import { json, urlencoded } from 'express';
 import { AuthService } from './modules/auth/auth.service';
 import { ResponseInterceptor } from './commons/interceptors/response.interceptor';
+import { SchoolProfileService } from './modules/school-profile/school-profile.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -33,10 +34,12 @@ async function bootstrap() {
   app.setGlobalPrefix(`api/backend`);
   const appModule = await NestFactory.createApplicationContext(AppModule);
   const authService = appModule.get(AuthService);
+  const schoolProfileService = appModule.get(SchoolProfileService);
+  await schoolProfileService.init();
   await authService.init();
   app.enableCors({
     origin: [...corsDev, ...corsStg],
-    methods: ['GET', 'POST', 'PATCH', 'DELETE', 'CONNECT', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'CONNECT', 'OPTIONS'],
     credentials: true,
   });
   await app.listen(port, () => {

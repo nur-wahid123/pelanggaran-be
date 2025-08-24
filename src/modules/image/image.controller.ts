@@ -22,8 +22,7 @@ export class ImageController {
   @UseInterceptors(
     FilesInterceptor('files', 10, { limits: { fileSize: 10 * 1024 * 1024 } }),
   )
-  async create(@UploadedFiles() files: Express.Multer.File[], @Body() body) {
-    console.log(body);
+  async create(@UploadedFiles() files: Express.Multer.File[]) {
     return await this.imageService.processAndUpload(files);
   }
 
@@ -41,11 +40,6 @@ export class ImageController {
       disposition: `inline; filename="${image.originalName}"`,
     });
   }
-
-  // @Get('get/:id')
-  // findOne(@Param('id') id: string) {
-  //   return this.imageService.findOne(+id);
-  // }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateImageDto: UpdateImageDto) {

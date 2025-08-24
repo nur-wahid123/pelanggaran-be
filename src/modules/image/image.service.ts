@@ -93,7 +93,19 @@ export class ImageService {
     return `This action updates a #${id} image`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} image`;
+  async remove(id: number) {
+    const images = await this.imageLinkRepository.find({
+      where: { id },
+      relations: { image: true },
+    });
+    if (!images) {
+      throw new NotFoundException('Image not found');
+    }
+    for (let index = 0; index < images.length; index++) {
+      const image = images[index];
+      await this.minio.deleteObject(image.image.key);
+      await this.imageRepository.delete(image.image);
+    }
+    return this.imageLinkRepository.delete(images);
   }
 }

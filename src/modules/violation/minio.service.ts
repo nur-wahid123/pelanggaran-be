@@ -1,4 +1,5 @@
 import {
+  DeleteObjectCommand,
   GetObjectCommand,
   PutObjectCommand,
   S3Client,
@@ -62,7 +63,7 @@ export class MinioService {
   }
 
   async deleteObject(key: string) {
-    const cmd = new PutObjectCommand({
+    const cmd = new DeleteObjectCommand({
       Bucket: this.bucket,
       Key: key,
     });
