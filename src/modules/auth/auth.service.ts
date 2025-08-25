@@ -10,10 +10,11 @@ import { UserRepository } from 'src/repositories/user.repository';
 import { JwtService } from '@nestjs/jwt';
 import { UserRegisterDto } from './dto/register-user.dto';
 import { RoleEnum } from 'src/commons/enums/role.enum';
+import { JwtPayload } from './jwt-payload.interface';
 
 @Injectable()
 export class AuthService {
-  getUser(user: Express.User) {
+  getUser(user: JwtPayload) {
     if (user.sub) {
       return this.userRepository.findOne({
         where: { id: user.sub },
