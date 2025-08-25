@@ -41,23 +41,32 @@ export class ImageService {
     for (const file of files) {
       let resized: Buffer;
       try {
-        resized = await sharp(file.buffer)
+        const pipeline = sharp(file.buffer)
           .rotate()
-          .resize({ width: 1200, withoutEnlargement: true }) // contoh: max width 1200
-          .jpeg({ quality: 75 })
-          .toBuffer();
+          .resize({ width: 1200, withoutEnlargement: true });
+
+        if (file.mimetype === 'image/png') {
+          // Keep transparency
+          resized = await pipeline.png({ quality: 75 }).toBuffer();
+        } else {
+          // Force white background for jpeg
+          resized = await pipeline
+            .flatten({ background: '#ffffff' })
+            .jpeg({ quality: 75 })
+            .toBuffer();
+        }
       } catch (e) {
         console.log(e);
       }
 
       const key = `${Date.now()}-${randomUUID()}.${file.mimetype.split('/')[1]}`;
 
-      await this.minio.uploadBuffer(key, resized, 'image/jpeg');
+      await this.minio.uploadBuffer(key, resized, file.mimetype);
 
       const img = this.imageRepository.create({
         originalName: file.originalname,
         key,
-        mimetype: 'image/jpeg',
+        mimetype: file.mimetype,
         size: resized.length,
       });
       const savedImage = await this.imageRepository.saveImage(img);

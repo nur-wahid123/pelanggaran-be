@@ -13,6 +13,24 @@ import { RoleEnum } from 'src/commons/enums/role.enum';
 
 @Injectable()
 export class AuthService {
+  getUser(user: Express.User) {
+    if (user.sub) {
+      return this.userRepository.findOne({
+        where: { id: user.sub },
+        relations: { violations: true },
+        select: {
+          password: false,
+          violations: { id: true },
+          email: true,
+          id: true,
+          role: true,
+          username: true,
+          name: true,
+        },
+      });
+    }
+    throw new InternalServerErrorException('Internal server error.');
+  }
   constructor(
     private readonly jwtService: JwtService,
     private readonly userRepository: UserRepository,

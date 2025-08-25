@@ -37,6 +37,13 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard, PermissionGuard)
+  @Get('profile')
+  @HttpCode(HttpStatus.OK)
+  async profile(@Request() req: ExRequest) {
+    return this.authService.getUser(req.user);
+  }
+
+  @UseGuards(JwtAuthGuard, PermissionGuard)
   @SetRole(RoleEnum.ADMIN)
   @Post('register')
   @HttpCode(HttpStatus.OK)
