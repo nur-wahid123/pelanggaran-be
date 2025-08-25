@@ -18,6 +18,7 @@ import { RoleEnum } from 'src/commons/enums/role.enum';
 import { UserRegisterDto } from './dto/register-user.dto';
 import { UserEntity } from 'src/entities/user.entity';
 import { Request as ExRequest } from 'express';
+import { JwtPayload } from './jwt-payload.interface';
 
 @Controller('auth')
 export class AuthController {
@@ -39,8 +40,8 @@ export class AuthController {
   @UseGuards(JwtAuthGuard, PermissionGuard)
   @Get('profile')
   @HttpCode(HttpStatus.OK)
-  async profile(@Request() req: ExRequest) {
-    return this.authService.getUser(req.user);
+  async profile(@Request() req: JwtPayload) {
+    return this.authService.getUser(req);
   }
 
   @UseGuards(JwtAuthGuard, PermissionGuard)
