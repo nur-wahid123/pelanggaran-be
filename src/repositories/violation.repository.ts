@@ -111,18 +111,25 @@ export class ViolationRepository extends Repository<ViolationEntity> {
       })
       .select(['imageGroup.id', 'imageGroup.imageId'])
       .getMany();
-    const dataNew = violations.map((violation) => {
-      const imageGroup = imageGroups.find(
-        (imageGroup) => imageGroup.id === violation.imageGroupId,
-      );
-      const res = new ViolationResponseDto(violation);
-      if (imageGroup) {
-        res.images = [imageGroup.imageId];
-      }
-      return res;
-    });
-    // violations.forEach((violation) => {
-    return [dataNew, count];
+    try {
+      const dataNew = violations.map((violation) => {
+        const imageGroup = [];
+        for (const imG of imageGroups) {
+          if (imG.id === violation.imageGroupId) {
+            imageGroup.push(imG.imageId);
+          }
+        }
+        const res = new ViolationResponseDto(violation);
+        if (imageGroup.length) {
+          res.images = imageGroup;
+        }
+        return res;
+      });
+      return [dataNew, count];
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException('internal server error');
+    }
   }
   findAllViolationType(
     filter: QueryViolationDto,
