@@ -3,8 +3,8 @@ import {
   Controller,
   Get,
   Param,
+  Patch,
   Post,
-  Put,
   UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
@@ -35,7 +35,7 @@ export class UserController {
     return this.userService.findOne(+id);
   }
 
-  @Put('edit/:id')
+  @Patch('edit/:id')
   @SetRole(RoleEnum.ADMIN)
   update(
     @Param('id') id: string,

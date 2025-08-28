@@ -4,6 +4,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Patch,
   Post,
   Request,
   UseGuards,
@@ -18,6 +19,7 @@ import { RoleEnum } from 'src/commons/enums/role.enum';
 import { UserRegisterDto } from './dto/register-user.dto';
 import { UserEntity } from 'src/entities/user.entity';
 import { Request as ExRequest } from 'express';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -27,6 +29,15 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async login(@Body() req: UserLoginDto): Promise<Token> {
     return this.authService.login(req);
+  }
+
+  @Patch('edit-password')
+  @UseGuards(JwtAuthGuard, PermissionGuard)
+  async editPassword(
+    @Body() body: ResetPasswordDto,
+    @Request() req: ExRequest,
+  ) {
+    return this.authService.editPassword(body, req);
   }
 
   @UseGuards(JwtAuthGuard, PermissionGuard)

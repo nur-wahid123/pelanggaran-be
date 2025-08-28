@@ -74,6 +74,10 @@ export class UserRepository extends Repository<UserEntity> {
     return user;
   }
 
+  isPasswordMatch(password: string, hashedPassword: string) {
+    return this.hashPassword.compare(password, hashedPassword);
+  }
+
   async validateUser(userLoginDto: UserLoginDto): Promise<UserEntity> {
     const user: UserEntity = await this.findUserByUsername(
       userLoginDto.username,

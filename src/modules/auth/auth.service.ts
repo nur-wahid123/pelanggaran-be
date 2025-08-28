@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Injectable,
   InternalServerErrorException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { UserLoginDto } from './dto/login-user.dto';
 import { UserEntity } from 'src/entities/user.entity';
@@ -10,9 +11,33 @@ import { UserRepository } from 'src/repositories/user.repository';
 import { JwtService } from '@nestjs/jwt';
 import { UserRegisterDto } from './dto/register-user.dto';
 import { RoleEnum } from 'src/commons/enums/role.enum';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { Request } from 'express';
 
 @Injectable()
 export class AuthService {
+  async editPassword(body: ResetPasswordDto, req: Request) {
+    if (req.user['sub']) {
+      const user = await this.userRepository.findOne({
+        where: { id: req.user['sub'] },
+        select: { id: true, password: true },
+      });
+      if (user) {
+        const isMatch = await this.userRepository.isPasswordMatch(
+          body.oldPassword,
+          user.password,
+        );
+        if (!isMatch) {
+          throw new BadRequestException('Old password is incorrect');
+        }
+        user.password = await this.userRepository.generatePassword(
+          body.newPassword,
+        );
+        return this.userRepository.saveUser(user);
+      }
+    }
+    throw new UnauthorizedException('Please login first.');
+  }
   getUser(user: Express.User) {
     if (user['sub']) {
       return this.userRepository.findOne({
