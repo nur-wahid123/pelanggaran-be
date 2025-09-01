@@ -18,6 +18,7 @@ import {
   ChartData,
   ChartDataResponseDto,
 } from './dto/response/chart-data-response.dto';
+import { BarChartDataResponseDto } from './dto/response/bar-chart-data-response.dto';
 
 @Injectable()
 export class DashboardService {
@@ -284,6 +285,34 @@ export class DashboardService {
         })
         .limit(1)
         .getOne();
+      const leaderBoard = await this.datasource
+        .createQueryBuilder(ViolationTypeEntity, 'violationType')
+        .leftJoin('violationType.violations', 'violations')
+        .select([
+          'violationType.name as name',
+          'violationType.id as id',
+          'COUNT(violations.id) AS totalviolation',
+        ])
+        .where((qb) => {
+          if (startDate && finishDate) {
+            qb.andWhere('violations.date BETWEEN :startDate AND :finishDate', {
+              startDate,
+              finishDate,
+            });
+          }
+        })
+        .groupBy('violationType.name')
+        .addGroupBy('violationType.id')
+        .orderBy('totalViolation', 'DESC')
+        .take(3)
+        .getRawMany<{ name: string; id: number; totalviolation: number }>();
+      const leaderboard = leaderBoard.map((lb) => {
+        const lbb = new BarChartDataResponseDto();
+        lbb.name = lb.name;
+        lbb.value = Number(lb.totalviolation);
+        return lbb;
+      });
+      dsb.leaderboard = leaderboard;
       dsb.mostViolationType = mostViolationType;
       dsb.violationPercentageFromLastMonth = Math.floor(
         ((violationsThisMonth - violationsLastMonth) /

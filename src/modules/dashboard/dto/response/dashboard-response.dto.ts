@@ -1,6 +1,7 @@
 import { Expose } from 'class-transformer';
 import { StudentEntity } from 'src/entities/student.entity';
 import { ViolationTypeEntity } from 'src/entities/violation-type.entity';
+import { BarChartDataResponseDto } from './bar-chart-data-response.dto';
 
 export class DashboardResponseDto {
   @Expose({ name: 'total_student' })
@@ -32,4 +33,7 @@ export class DashboardResponseDto {
 
   @Expose({ name: 'violation_percentage_from_last_month' })
   violationPercentageFromLastMonth: number;
+
+  @Expose({ name: 'leaderboard' })
+  leaderboard: BarChartDataResponseDto[];
 }

@@ -104,13 +104,18 @@ export class ViolationRepository extends Repository<ViolationEntity> {
     const data = qB.getManyAndCount();
     const [violations, count] = await data;
     const imageGroupIds = violations.map((violation) => violation.imageGroupId);
-    const imageGroups = await this.datasource
-      .createQueryBuilder(ImageLinks, 'imageGroup')
-      .where('imageGroup.id IN (:...imageGroupIds)', {
-        imageGroupIds,
-      })
-      .select(['imageGroup.id', 'imageGroup.imageId'])
-      .getMany();
+    let imageGroups;
+    if (imageGroupIds.length > 0) {
+      imageGroups = await this.datasource
+        .createQueryBuilder(ImageLinks, 'imageGroup')
+        .where('imageGroup.id IN (:...imageGroupIds)', {
+          imageGroupIds,
+        })
+        .select(['imageGroup.id', 'imageGroup.imageId'])
+        .getMany();
+    } else {
+      imageGroups = [];
+    }
     try {
       const dataNew = violations.map((violation) => {
         const imageGroup = [];
