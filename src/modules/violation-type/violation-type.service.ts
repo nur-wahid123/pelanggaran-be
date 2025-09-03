@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import {
   CreateViolationTypeBatchDto,
   CreateViolationTypeDto,
@@ -75,7 +79,13 @@ export class ViolationTypeService {
   }
 
   async remove(id: number, userId: number) {
-    const violationType = new ViolationTypeEntity();
+    const violationType = await this.findOne(id);
+    if (!violationType) {
+      throw new NotFoundException('violation type not found');
+    }
+    if (violationType.violations.length > 0) {
+      throw new BadRequestException('this violation type has violations');
+    }
     violationType.id = id;
     violationType.deletedBy = userId;
     violationType.deletedAt = new Date();

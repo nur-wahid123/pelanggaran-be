@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import {
   CreateStudentBatchDto,
   CreateStudentDto,
@@ -55,8 +59,8 @@ export class StudentService {
     return student;
   }
 
-  findOne(id: string) {
-    const data = this.studentRepository.findOne({
+  async findOne(id: string) {
+    const data = await this.studentRepository.findOne({
       where: { nationalStudentId: id },
       relations: { studentClass: true },
     });
@@ -70,7 +74,25 @@ export class StudentService {
     return `This action updates a #${updateStudentDto} student`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} student`;
+  async remove(id: string, userId: number) {
+    const data = await this.studentRepository.findOne({
+      where: { nationalStudentId: id },
+      relations: { studentClass: true, violations: true },
+      select: {
+        id: true,
+        deletedBy: true,
+        deletedAt: true,
+        violations: { id: true },
+      },
+    });
+    if (data.violations.length > 0) {
+      throw new BadRequestException('this student has violations');
+    }
+    if (!data) {
+      throw new NotFoundException('student not found');
+    }
+    data.deletedAt = new Date();
+    data.deletedBy = userId;
+    return this.studentRepository.saveStudent(data);
   }
 }

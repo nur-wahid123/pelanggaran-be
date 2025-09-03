@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
@@ -49,5 +50,11 @@ export class UserController {
   @SetRole(RoleEnum.ADMIN)
   create(@Body() body: UserCreateDto, @Payload() payload: JwtPayload) {
     return this.userService.create(body, +payload.sub);
+  }
+
+  @Delete('remove/:id')
+  @SetRole(RoleEnum.ADMIN)
+  remove(@Param('id') id: string, @Payload() payload: JwtPayload) {
+    return this.userService.remove(+id, payload.sub);
   }
 }

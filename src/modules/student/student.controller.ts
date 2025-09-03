@@ -58,7 +58,7 @@ export class StudentController {
   }
 
   @Delete('delete/:id')
-  remove(@Param('id') id: string) {
-    return this.studentService.remove(+id);
+  remove(@Param('id') id: string, @Payload() payload: JwtPayload) {
+    return this.studentService.remove(id, +payload.sub);
   }
 }

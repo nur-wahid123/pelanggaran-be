@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { FilterDto } from 'src/commons/dto/filter.dto';
@@ -15,6 +16,32 @@ import { UserEntity } from 'src/entities/user.entity';
 
 @Injectable()
 export class UserService {
+  async remove(id: number, userId: number) {
+    const user: UserEntity = await this.userRepository.findOne({
+      where: { id },
+      relations: { violations: true },
+      select: {
+        violations: { id: true },
+        id: true,
+        role: true,
+      },
+    });
+    if (!user) {
+      throw new NotFoundException('user not found');
+    }
+    if (user.violations.length > 0) {
+      throw new BadRequestException('this user has violations');
+    }
+    user.id = id;
+    user.deletedBy = userId;
+    user.deletedAt = new Date();
+    try {
+      return this.userRepository.saveUser(user);
+    } catch (e) {
+      console.log(e);
+      throw new InternalServerErrorException('internal server error');
+    }
+  }
   async create(userCreateDto: UserCreateDto, userId: number) {
     try {
       await this.userRepository.checkUsernameAndEmailExistanceOnDB(

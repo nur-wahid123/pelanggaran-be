@@ -44,7 +44,10 @@ export class ClassesService {
   constructor(private readonly classRepository: ClassRepository) {}
 
   async findOne(id: number) {
-    const data = await this.classRepository.findOne({ where: { id } });
+    const data = await this.classRepository.findOne({
+      where: { id },
+      relations: { students: true },
+    });
     if (!data) {
       throw new NotFoundException('class not found');
     }
@@ -62,7 +65,13 @@ export class ClassesService {
   }
 
   async remove(id: number, userId: number) {
-    await this.findOne(id);
+    const data = await this.findOne(id);
+    if (!data) {
+      throw new NotFoundException('class not found');
+    }
+    if (data.students.length > 0) {
+      throw new BadRequestException('this class has students');
+    }
     const newDt = new ClassEntity();
     newDt.id = id;
     newDt.deletedAt = new Date();
