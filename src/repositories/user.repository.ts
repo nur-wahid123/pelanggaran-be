@@ -51,9 +51,11 @@ export class UserRepository extends Repository<UserEntity> {
     return passwordHash;
   }
   async checkUsernameAndEmailExistanceOnDB(username: string, email: string) {
-    const user = await this.findOne({
-      where: [{ username }, { email }],
-    });
+    const user = await this.createQueryBuilder('user')
+      .where('user.username = :username', { username })
+      .orWhere('user.email = :email', { email })
+      .andWhere('user.deletedAt IS NULL')
+      .getOne();
     if (user) {
       throw new ForbiddenException('User already exist');
     }

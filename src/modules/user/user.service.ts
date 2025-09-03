@@ -52,7 +52,16 @@ export class UserService {
       console.log(error);
       throw new ForbiddenException('User already exist');
     }
-    const user: UserEntity = new UserEntity();
+    const userWithThisEmail: UserEntity = await this.userRepository.findOne({
+      where: { email: userCreateDto.email },
+      withDeleted: true,
+    });
+    let user: UserEntity = new UserEntity();
+    if (userWithThisEmail) {
+      user = userWithThisEmail;
+      user.deletedAt = null;
+      user.deletedBy = null;
+    }
     user.name = userCreateDto.name;
     user.username = userCreateDto.username;
     user.role = userCreateDto.role;
