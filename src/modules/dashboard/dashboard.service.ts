@@ -304,7 +304,7 @@ export class DashboardService {
         .groupBy('violationType.name')
         .addGroupBy('violationType.id')
         .orderBy('totalViolation', 'DESC')
-        .take(3)
+        .limit(3)
         .getRawMany<{ name: string; id: number; totalviolation: number }>();
       const leaderboard = leaderBoard.map((lb) => {
         const lbb = new BarChartDataResponseDto();
