@@ -236,6 +236,7 @@ export class ViolationRepository extends Repository<ViolationEntity> {
       await queryRunner.startTransaction();
       await queryRunner.manager.save(violations);
       await queryRunner.commitTransaction();
+      return violations;
     } catch (error) {
       await queryRunner.rollbackTransaction();
       console.log(error);
