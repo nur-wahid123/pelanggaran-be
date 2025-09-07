@@ -39,8 +39,14 @@ export class ImageService {
     try {
       const imageLinks = await this.imageLinkRepository.findOne({
         where: { id },
+        relations: { images: true },
+        select: { id: true, images: { id: true } },
       });
-      return imageLinks.images;
+      if (!imageLinks) {
+        throw new NotFoundException('Image not found');
+      }
+      const imgs = imageLinks.images.map((image) => image.id);
+      return imgs;
     } catch (error) {
       console.log(error);
       throw new InternalServerErrorException('internal server error');

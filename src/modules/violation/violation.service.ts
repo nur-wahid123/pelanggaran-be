@@ -33,7 +33,12 @@ export class ViolationService {
   findOne(id: number) {
     return this.violationRepository.findOne({
       where: { id },
-      relations: { violationTypes: true, students: true, creator: true },
+      relations: {
+        violationTypes: true,
+        image: true,
+        students: true,
+        creator: true,
+      },
     });
   }
   async findAll(
@@ -74,12 +79,14 @@ export class ViolationService {
     if (violationTypes.length === 0) {
       throw new NotFoundException('student not found');
     }
-    return this.violationRepository.createViolation(
+    const data = await this.violationRepository.createViolation(
       students,
       violationTypes,
       body.imageId,
       user,
       note,
     );
+
+    return data.id;
   }
 }

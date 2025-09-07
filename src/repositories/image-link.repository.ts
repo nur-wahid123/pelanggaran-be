@@ -1,6 +1,6 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { randomUUID } from 'crypto';
-import sharp from 'sharp';
+import * as sharp from 'sharp';
 import { ImageLinks } from 'src/entities/image-links.entity';
 import { ImageEntity } from 'src/entities/image.entity';
 import { MinioService } from 'src/modules/violation/minio.service';
@@ -16,6 +16,8 @@ export class ImageLinkRepository extends Repository<ImageLinks> {
       const manager = qR.manager;
       // Resize & compress with sharp
       const images: ImageEntity[] = [];
+      const imageLink = new ImageLinks();
+      await manager.save(imageLink);
       // const maxId = await this.imageLinkRepository.maximum('id');
       for (const file of files) {
         let resized: Buffer;
@@ -47,15 +49,13 @@ export class ImageLinkRepository extends Repository<ImageLinks> {
           key,
           mimetype: file.mimetype,
           size: resized.length,
+          imageLink,
         });
-        const savedImage = await manager.save(img);
+        // const savedImage = await manager.save(img);
 
-        images.push(savedImage);
+        images.push(img);
       }
-      const imageLink = manager.create(ImageLinks, {
-        images,
-      });
-      await manager.save(imageLink);
+      await manager.save(images);
       await qR.commitTransaction();
       return imageLink.id;
     } catch (error) {
