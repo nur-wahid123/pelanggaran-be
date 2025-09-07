@@ -18,7 +18,7 @@ export class CreateViolationDto {
   @IsOptional()
   @IsNumber()
   @Expose({ name: 'image_id' })
-  public imageId?: number;
+  public imageId?: number | null;
 
   @IsNotEmpty()
   @IsArray()

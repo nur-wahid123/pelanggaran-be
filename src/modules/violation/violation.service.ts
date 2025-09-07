@@ -3,7 +3,6 @@ import { CreateViolationDto } from './dto/create-violation.dto';
 import { ViolationRepository } from 'src/repositories/violation.repository';
 import { UserEntity } from 'src/entities/user.entity';
 import { StudentEntity } from 'src/entities/student.entity';
-import { ViolationEntity } from 'src/entities/violation.entity';
 import { In } from 'typeorm';
 import { PageOptionsDto } from 'src/commons/dto/page-option.dto';
 import { PageMetaDto } from 'src/commons/dto/page-meta.dto';
@@ -34,7 +33,12 @@ export class ViolationService {
   findOne(id: number) {
     return this.violationRepository.findOne({
       where: { id },
-      relations: { violationTypes: true, students: true, creator: true },
+      relations: {
+        violationTypes: true,
+        image: true,
+        students: true,
+        creator: true,
+      },
     });
   }
   async findAll(
@@ -75,16 +79,14 @@ export class ViolationService {
     if (violationTypes.length === 0) {
       throw new NotFoundException('student not found');
     }
-    const violation = new ViolationEntity();
-    violation.creator = user;
-    if (note) {
-      violation.note = note;
-    }
-    violation.imageGroupId = body.imageId;
-    violation.date = new Date();
-    violation.students = students;
-    violation.violationTypes = violationTypes;
-    violation.createdBy = user.id;
-    return this.violationRepository.saveViolations(violation);
+    const data = await this.violationRepository.createViolation(
+      students,
+      violationTypes,
+      body.imageId,
+      user,
+      note,
+    );
+
+    return data.id;
   }
 }

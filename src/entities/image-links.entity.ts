@@ -1,25 +1,28 @@
 import {
-  Column,
   Entity,
   JoinColumn,
-  ManyToOne,
+  OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { CommonBaseEntity } from './common-base.entity';
 import { ImageEntity } from './image.entity';
+import { ViolationEntity } from './violation.entity';
 
 @Entity('image_links')
 export class ImageLinks extends CommonBaseEntity {
   @PrimaryGeneratedColumn()
-  public imageLinkId?: number;
+  public id?: number;
 
-  @Column()
-  id: number; // "group id", same across multiple rows
-
-  @ManyToOne(() => ImageEntity, { eager: true })
+  @OneToMany(() => ImageEntity, (image) => image.imageLink, {
+    nullable: false,
+  })
   @JoinColumn({ name: 'image_id' })
-  image: ImageEntity;
+  images: ImageEntity[];
 
-  @Column({ name: 'image_id' })
-  imageId: number;
+  @OneToOne(() => ViolationEntity, (violation) => violation.image, {
+    nullable: true,
+  })
+  @JoinColumn({ name: 'violation_id' })
+  violation: ViolationEntity | null;
 }

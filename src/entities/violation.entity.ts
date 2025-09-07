@@ -4,6 +4,7 @@ import {
   JoinTable,
   ManyToMany,
   ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { CommonBaseEntity } from './common-base.entity';
@@ -11,6 +12,7 @@ import { StudentEntity } from './student.entity';
 import { ViolationTypeEntity } from './violation-type.entity';
 import { Expose } from 'class-transformer';
 import { UserEntity } from './user.entity';
+import { ImageLinks } from './image-links.entity';
 
 @Entity('violations')
 export class ViolationEntity extends CommonBaseEntity {
@@ -26,8 +28,10 @@ export class ViolationEntity extends CommonBaseEntity {
   @ManyToOne(() => UserEntity, (user) => user.violations)
   public creator?: UserEntity;
 
-  @Column({ nullable: true })
-  imageGroupId: number;
+  @OneToOne(() => ImageLinks, (image) => image.violation, {
+    nullable: true,
+  })
+  public image?: ImageLinks | null;
 
   @ManyToMany(() => StudentEntity, (s) => s.violations)
   @JoinTable()
