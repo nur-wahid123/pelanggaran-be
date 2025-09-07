@@ -1,17 +1,61 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { PageOptionsDto } from 'src/commons/dto/page-option.dto';
 import { QueryDateRangeDto } from 'src/commons/dto/query-daterange.dto';
 import { ViolationTypeEnum } from 'src/commons/enums/violation-type.enum';
 import { ImageLinks } from 'src/entities/image-links.entity';
 import { StudentEntity } from 'src/entities/student.entity';
+import { UserEntity } from 'src/entities/user.entity';
 import { ViolationTypeEntity } from 'src/entities/violation-type.entity';
 import { ViolationEntity } from 'src/entities/violation.entity';
 import { QueryViolationDto } from 'src/modules/violation/dto/query-violation.dto';
-import { ViolationResponseDto } from 'src/modules/violation/dto/violent-response.dto';
 import { DataSource, Repository } from 'typeorm';
 
 @Injectable()
 export class ViolationRepository extends Repository<ViolationEntity> {
+  async createViolation(
+    students: StudentEntity[],
+    violationTypes: ViolationTypeEntity[],
+    image: number,
+    user: UserEntity,
+    note: string,
+  ) {
+    const qR = this.datasource.createQueryRunner();
+    try {
+      await qR.connect();
+      await qR.startTransaction();
+      const imageLink = await qR.manager.findOne(ImageLinks, {
+        where: { id: image },
+      });
+      if (!imageLink) {
+        throw new NotFoundException('image not found');
+      }
+      const violation = new ViolationEntity();
+      violation.creator = user;
+      if (note) {
+        violation.note = note;
+      }
+      violation.image = imageLink;
+      imageLink.violation = violation;
+      violation.date = new Date();
+      violation.students = students;
+      violation.violationTypes = violationTypes;
+      violation.createdBy = user.id;
+      await qR.manager.save(imageLink);
+      await qR.manager.save(violation);
+      await qR.commitTransaction();
+      return violation;
+    } catch (error) {
+      console.log(error);
+      await qR.rollbackTransaction();
+      throw new InternalServerErrorException('internal server error');
+    } finally {
+      await qR.release();
+    }
+  }
   async saveViolation(violation: ViolationEntity) {
     const queryRunner = this.datasource.createQueryRunner();
     await queryRunner.connect();
@@ -70,8 +114,11 @@ export class ViolationRepository extends Repository<ViolationEntity> {
       .leftJoinAndSelect('vi.creator', 'creator')
       .leftJoinAndSelect('vi.students', 'student')
       .leftJoinAndSelect('vi.violationTypes', 'violationType')
+      .leftJoinAndSelect('vi.image', 'image')
+      .leftJoinAndSelect('image.images', 'images')
       .addSelect(['violationType.name', 'violationType.point'])
       .addSelect(['student.name', 'student.nationalStudentId'])
+      .addSelect(['image.id', 'images.id', 'images.key'])
       .addSelect(['vi.createdAt', 'vi.date'])
       .addSelect(['creator.name'])
       .where((qb) => {
@@ -101,40 +148,7 @@ export class ViolationRepository extends Repository<ViolationEntity> {
       qB.skip(skip).take(take);
     }
     qB.orderBy('vi.id', 'DESC');
-    const data = qB.getManyAndCount();
-    const [violations, count] = await data;
-    const imageGroupIds = violations.map((violation) => violation.imageGroupId);
-    let imageGroups;
-    if (imageGroupIds.length > 0) {
-      imageGroups = await this.datasource
-        .createQueryBuilder(ImageLinks, 'imageGroup')
-        .where('imageGroup.id IN (:...imageGroupIds)', {
-          imageGroupIds,
-        })
-        .select(['imageGroup.id', 'imageGroup.imageId'])
-        .getMany();
-    } else {
-      imageGroups = [];
-    }
-    try {
-      const dataNew = violations.map((violation) => {
-        const imageGroup = [];
-        for (const imG of imageGroups) {
-          if (imG.id === violation.imageGroupId) {
-            imageGroup.push(imG.imageId);
-          }
-        }
-        const res = new ViolationResponseDto(violation);
-        if (imageGroup.length) {
-          res.images = imageGroup;
-        }
-        return res;
-      });
-      return [dataNew, count];
-    } catch (error) {
-      console.log(error);
-      throw new InternalServerErrorException('internal server error');
-    }
+    return qB.getManyAndCount();
   }
   findAllViolationType(
     filter: QueryViolationDto,
