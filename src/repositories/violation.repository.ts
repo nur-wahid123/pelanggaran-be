@@ -38,8 +38,6 @@ export class ViolationRepository extends Repository<ViolationEntity> {
         violation.image = imageLink;
         imageLink.violation = violation;
       }
-      violation.image = imageLink;
-      imageLink.violation = violation;
       violation.date = new Date();
       violation.students = students;
       violation.violationTypes = violationTypes;
