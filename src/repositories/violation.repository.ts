@@ -19,7 +19,7 @@ export class ViolationRepository extends Repository<ViolationEntity> {
   async createViolation(
     students: StudentEntity[],
     violationTypes: ViolationTypeEntity[],
-    image: number,
+    image: number | null,
     user: UserEntity,
     note: string,
   ) {
@@ -27,9 +27,12 @@ export class ViolationRepository extends Repository<ViolationEntity> {
     try {
       await qR.connect();
       await qR.startTransaction();
-      const imageLink = await qR.manager.findOne(ImageLinks, {
-        where: { id: image },
-      });
+      let imageLink: ImageLinks | null = null;
+      if (image) {
+        imageLink = await qR.manager.findOne(ImageLinks, {
+          where: { id: image },
+        });
+      }
       if (!imageLink) {
         throw new NotFoundException('image not found');
       }
@@ -38,13 +41,19 @@ export class ViolationRepository extends Repository<ViolationEntity> {
       if (note) {
         violation.note = note;
       }
+      if (image) {
+        violation.image = imageLink;
+        imageLink.violation = violation;
+      }
       violation.image = imageLink;
       imageLink.violation = violation;
       violation.date = new Date();
       violation.students = students;
       violation.violationTypes = violationTypes;
       violation.createdBy = user.id;
-      await qR.manager.save(imageLink);
+      if (image) {
+        await qR.manager.save(imageLink);
+      }
       await qR.manager.save(violation);
       await qR.commitTransaction();
       return violation;
