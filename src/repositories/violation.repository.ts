@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  InternalServerErrorException,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { PageOptionsDto } from 'src/commons/dto/page-option.dto';
 import { QueryDateRangeDto } from 'src/commons/dto/query-daterange.dto';
 import { ViolationTypeEnum } from 'src/commons/enums/violation-type.enum';
@@ -33,9 +29,6 @@ export class ViolationRepository extends Repository<ViolationEntity> {
           where: { id: image },
         });
       }
-      if (!imageLink) {
-        throw new NotFoundException('image not found');
-      }
       const violation = new ViolationEntity();
       violation.creator = user;
       if (note) {
@@ -45,8 +38,6 @@ export class ViolationRepository extends Repository<ViolationEntity> {
         violation.image = imageLink;
         imageLink.violation = violation;
       }
-      violation.image = imageLink;
-      imageLink.violation = violation;
       violation.date = new Date();
       violation.students = students;
       violation.violationTypes = violationTypes;
