@@ -59,18 +59,25 @@ export class ImageService {
   }
 
   async remove(id: number) {
-    const images = await this.imageLinkRepository.findOne({
+    const imageLink = await this.imageLinkRepository.findOne({
       where: { id },
       relations: { images: true },
     });
-    if (!images) {
+    if (!imageLink) {
       throw new NotFoundException('Image not found');
     }
-    for (let index = 0; index < images.images.length; index++) {
-      const image = images.images[index];
-      await this.minio.deleteObject(image.key);
-      await this.imageRepository.delete(image);
+    if (Array.isArray(imageLink.images)) {
+      for (const image of imageLink.images) {
+        try {
+          await this.minio.deleteObject(image.key);
+        } catch (e) {
+          // Log and continue deleting DB record even if minio deletion fails
+          console.error(`Failed to delete object from Minio: ${image.key}`, e);
+        }
+        await this.imageRepository.delete(image.id);
+      }
     }
-    return this.imageLinkRepository.delete(images);
+    await this.imageLinkRepository.delete(id);
+    return true;
   }
 }
