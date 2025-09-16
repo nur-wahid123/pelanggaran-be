@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
@@ -26,7 +27,7 @@ export class UserController {
 
   @Get('list')
   @SetRole(RoleEnum.ADMIN)
-  findAll(@Param() pageOptionsDto: PageOptionsDto, @Param() filter: FilterDto) {
+  findAll(@Query() pageOptionsDto: PageOptionsDto, @Query() filter: FilterDto) {
     return this.userService.findAll(pageOptionsDto, filter);
   }
 

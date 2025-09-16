@@ -16,6 +16,9 @@ export class UserRepository extends Repository<UserEntity> {
   findAll(pageOptionsDto: PageOptionsDto, filter: FilterDto) {
     const { page, skip, take, order } = pageOptionsDto;
     const qB = this.createQueryBuilder('user')
+      .leftJoin('user.violations', 'violations')
+      .select(['user.id', 'user.name', 'user.role'])
+      .addSelect(['violations.id'])
       .where((qb) => {
         const { search } = filter;
         if (search) {
@@ -30,6 +33,7 @@ export class UserRepository extends Repository<UserEntity> {
     }
     return qB.getManyAndCount();
   }
+
   async saveUser(newUser: UserEntity): Promise<UserEntity> {
     const queryRunner = this.datasource.createQueryRunner();
     await queryRunner.connect();
@@ -46,10 +50,12 @@ export class UserRepository extends Repository<UserEntity> {
       await queryRunner.release();
     }
   }
+
   generatePassword(password: string): string | PromiseLike<string> {
     const passwordHash = this.hashPassword.generate(password);
     return passwordHash;
   }
+
   async checkUsernameAndEmailExistanceOnDB(username: string, email: string) {
     const user = await this.createQueryBuilder('user')
       .where('user.username = :username', { username })

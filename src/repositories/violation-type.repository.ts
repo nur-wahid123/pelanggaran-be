@@ -42,12 +42,20 @@ export class ViolationTypeRepository extends Repository<ViolationTypeEntity> {
       await queryRunner.release();
     }
   }
+
   findAll(filter: QueryViolationTypeDto, pageOptionsDto: PageOptionsDto) {
     const { page, skip, take, order } = pageOptionsDto;
     const query = this.datasource
       .createQueryBuilder(ViolationTypeEntity, 'violationType')
-      .leftJoinAndSelect('violationType.violations', 'violations')
-      .leftJoinAndSelect('violations.students', 'students')
+      .leftJoin('violationType.violations', 'violations')
+      .leftJoin('violations.students', 'students')
+      .select([
+        'violationType.id',
+        'violationType.point',
+        'violationType.name',
+        'violations.id',
+        'students.id',
+      ])
       .where((qb) => {
         const { search, studentId, violationId } = filter;
         if (violationId) {

@@ -96,7 +96,10 @@ export class UserService {
     return this.userRepository.saveUser(user);
   }
   findOne(id: number) {
-    return this.userRepository.findOne({ where: { id } });
+    return this.userRepository.findOne({
+      where: { id },
+      select: { id: true, email: true, name: true, username: true, role: true },
+    });
   }
   constructor(private readonly userRepository: UserRepository) {}
 
